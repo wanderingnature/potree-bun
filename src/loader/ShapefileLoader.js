@@ -1,8 +1,8 @@
 
-import * as THREE from "../../libs/three.js/build/three.module.js";
-import {Line2} from "../../libs/three.js/lines/Line2.js";
-import {LineGeometry} from "../../libs/three.js/lines/LineGeometry.js";
-import {LineMaterial} from "../../libs/three.js/lines/LineMaterial.js";
+import * as THREE from "three";
+import {Line2} from "three/addons/lines/Line2.js";
+import {LineGeometry} from "three/addons/lines/LineGeometry.js";
+import {LineMaterial} from "three/addons/lines/LineMaterial.js";
 
 export class ShapefileLoader{
 

@@ -1,5 +1,15 @@
+#version 300 es
 
-varying vec2 vUv;
+precision mediump float;
+precision mediump int;
+
+in vec3 position;
+in vec2 uv;
+
+uniform mat4 projectionMatrix;
+uniform mat4 modelViewMatrix;
+
+out vec2 vUv;
 
 void main() {
 	vUv = uv;

@@ -1,0 +1,85 @@
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "ES2022",                                  /* Compile to modern JavaScript */
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],           /* Include DOM types for browser and modern ES features */
+
+    /* Modules */
+    "module": "ESNext",                                  /* Use latest module syntax */
+    "moduleResolution": "bundler",                       /* Use bundler resolution for Bun */
+    "resolveJsonModule": true,                           /* Allow importing JSON files */
+    "allowImportingTsExtensions": false,                 /* Standard TS behavior */
+
+    /* JavaScript Support - Enable for gradual migration */
+    "allowJs": true,                                     /* Allow JavaScript files to be compiled */
+    "checkJs": true,                                     /* Type check JavaScript files */
+    "maxNodeModuleJsDepth": 1,                          /* Limit type checking depth in node_modules */
+
+    /* Emit */
+    "noEmit": true,                                      /* Bun handles compilation, no need for tsc to emit */
+    "sourceMap": true,                                   /* Generate source maps for debugging */
+    "removeComments": false,                             /* Keep comments in output */
+
+    /* Interop Constraints */
+    "esModuleInterop": true,                            /* Enable CommonJS/ES module interop */
+    "allowSyntheticDefaultImports": true,               /* Allow default imports from modules with no default export */
+    "forceConsistentCasingInFileNames": true,          /* Enforce consistent file name casing */
+    "isolatedModules": true,                            /* Ensure each file can be safely transpiled in isolation */
+
+    /* Type Checking - Relaxed for initial migration */
+    "strict": false,                                     /* Disable strict mode initially for gradual migration */
+    "noImplicitAny": false,                             /* Allow implicit any during migration */
+    "strictNullChecks": false,                          /* Disable strict null checks initially */
+    "strictFunctionTypes": false,                       /* Disable strict function type checking initially */
+    "strictBindCallApply": false,                       /* Disable strict bind/call/apply initially */
+    "strictPropertyInitialization": false,              /* Disable strict property initialization */
+    "noImplicitThis": false,                            /* Allow implicit this initially */
+    "alwaysStrict": true,                               /* Always use strict mode */
+
+    /* Additional Checks - Recommended for code quality */
+    "noUnusedLocals": false,                            /* Disable unused locals check initially */
+    "noUnusedParameters": false,                        /* Disable unused parameters check initially */
+    "noImplicitReturns": false,                         /* Disable implicit return check initially */
+    "noFallthroughCasesInSwitch": true,                /* Prevent fallthrough in switch statements */
+    "noUncheckedIndexedAccess": false,                 /* Disable strict indexed access initially */
+    "allowUnusedLabels": false,                         /* Disallow unused labels */
+    "allowUnreachableCode": false,                      /* Disallow unreachable code */
+
+    /* Completeness */
+    "skipLibCheck": true,                               /* Skip type checking of declaration files for faster builds */
+    "skipDefaultLibCheck": true,                        /* Skip type checking of default library files */
+
+    /* Advanced Options */
+    "useDefineForClassFields": true,                    /* Use define semantics for class fields */
+    "experimentalDecorators": false,                    /* Disable decorators unless needed */
+    "emitDecoratorMetadata": false,                     /* Disable decorator metadata */
+
+    /* Path Mapping - Configure if using path aliases */
+    "baseUrl": ".",                                      /* Base directory for resolving non-relative modules */
+    "paths": {
+      "@/*": ["src/*"],                                  /* Optional: alias for src directory */
+      "@libs/*": ["libs/*"]                              /* Optional: alias for libs directory */
+    }
+  },
+
+  /* Files to include */
+  "include": [
+    "src/**/*",                                          /* All files in src directory */
+    "types/**/*"                                         /* Custom type definitions if any */
+  ],
+
+  /* Files to exclude */
+  "exclude": [
+    "node_modules",                                      /* Exclude dependencies */
+    "build",                                             /* Exclude build output */
+    "libs",                                              /* Exclude third-party libraries */
+    "dist",                                              /* Exclude distribution files */
+    "examples",                                          /* Exclude examples */
+    "docs",                                              /* Exclude documentation */
+    "**/*.spec.ts",                                      /* Exclude test files if needed */
+    "**/*.test.ts"                                       /* Exclude test files if needed */
+  ],
+
+  /* TypeScript project references - for future modularization */
+  "references": []
+}

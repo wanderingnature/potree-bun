@@ -1,5 +1,5 @@
 
-import * as THREE from "../../libs/three.js/build/three.module.js";
+import * as THREE from "three";
 import {TextSprite} from "../TextSprite.js";
 
 export class Volume extends THREE.Object3D {
@@ -114,42 +114,39 @@ export class BoxVolume extends Volume{
 		let boxGeometry = new THREE.BoxGeometry(1, 1, 1);
 		boxGeometry.computeBoundingBox();
 
-		let boxFrameGeometry = new THREE.Geometry();
+		let boxFrameGeometry = new THREE.BufferGeometry();
 		{
-			let Vector3 = THREE.Vector3;
-
-			boxFrameGeometry.vertices.push(
-
+			const positions = new Float32Array([
 				// bottom
-				new Vector3(-0.5, -0.5, 0.5),
-				new Vector3(0.5, -0.5, 0.5),
-				new Vector3(0.5, -0.5, 0.5),
-				new Vector3(0.5, -0.5, -0.5),
-				new Vector3(0.5, -0.5, -0.5),
-				new Vector3(-0.5, -0.5, -0.5),
-				new Vector3(-0.5, -0.5, -0.5),
-				new Vector3(-0.5, -0.5, 0.5),
+				-0.5, -0.5, 0.5,
+				0.5, -0.5, 0.5,
+				0.5, -0.5, 0.5,
+				0.5, -0.5, -0.5,
+				0.5, -0.5, -0.5,
+				-0.5, -0.5, -0.5,
+				-0.5, -0.5, -0.5,
+				-0.5, -0.5, 0.5,
 				// top
-				new Vector3(-0.5, 0.5, 0.5),
-				new Vector3(0.5, 0.5, 0.5),
-				new Vector3(0.5, 0.5, 0.5),
-				new Vector3(0.5, 0.5, -0.5),
-				new Vector3(0.5, 0.5, -0.5),
-				new Vector3(-0.5, 0.5, -0.5),
-				new Vector3(-0.5, 0.5, -0.5),
-				new Vector3(-0.5, 0.5, 0.5),
+				-0.5, 0.5, 0.5,
+				0.5, 0.5, 0.5,
+				0.5, 0.5, 0.5,
+				0.5, 0.5, -0.5,
+				0.5, 0.5, -0.5,
+				-0.5, 0.5, -0.5,
+				-0.5, 0.5, -0.5,
+				-0.5, 0.5, 0.5,
 				// sides
-				new Vector3(-0.5, -0.5, 0.5),
-				new Vector3(-0.5, 0.5, 0.5),
-				new Vector3(0.5, -0.5, 0.5),
-				new Vector3(0.5, 0.5, 0.5),
-				new Vector3(0.5, -0.5, -0.5),
-				new Vector3(0.5, 0.5, -0.5),
-				new Vector3(-0.5, -0.5, -0.5),
-				new Vector3(-0.5, 0.5, -0.5),
+				-0.5, -0.5, 0.5,
+				-0.5, 0.5, 0.5,
+				0.5, -0.5, 0.5,
+				0.5, 0.5, 0.5,
+				0.5, -0.5, -0.5,
+				0.5, 0.5, -0.5,
+				-0.5, -0.5, -0.5,
+				-0.5, 0.5, -0.5
+			]);
 
-			);
-
+			boxFrameGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 		}
 
 		this.material = new THREE.MeshBasicMaterial({
@@ -229,12 +226,13 @@ export class SphereVolume extends Volume{
 		this.label.visible = false;
 
 
-		let frameGeometry = new THREE.Geometry();
+		let frameGeometry = new THREE.BufferGeometry();
 		{
 			let steps = 64;
 			let uSegments = 8;
 			let vSegments = 5;
 			let r = 1;
+			let positions = [];
 
 			for(let uSegment = 0; uSegment < uSegments; uSegment++){
 
@@ -252,11 +250,8 @@ export class SphereVolume extends Volume{
 					let heightNext = Math.sin(vNext);
 					let xyAmountNext = Math.cos(vNext);
 
-					let vertex = new THREE.Vector3(dirx * xyAmount, diry * xyAmount, height);
-					frameGeometry.vertices.push(vertex);
-
-					let vertexNext = new THREE.Vector3(dirx * xyAmountNext, diry * xyAmountNext, heightNext);
-					frameGeometry.vertices.push(vertexNext);
+					positions.push(dirx * xyAmount, diry * xyAmount, height);
+					positions.push(dirx * xyAmountNext, diry * xyAmountNext, heightNext);
 				}
 			}
 
@@ -282,13 +277,12 @@ export class SphereVolume extends Volume{
 
 					let xyAmount = Math.sqrt(1 - height * height);
 
-					let vertex = new THREE.Vector3(dirx * xyAmount, diry * xyAmount, height);
-					frameGeometry.vertices.push(vertex);
-
-					let vertexNext = new THREE.Vector3(dirxNext * xyAmount, diryNext * xyAmount, height);
-					frameGeometry.vertices.push(vertexNext);
+					positions.push(dirx * xyAmount, diry * xyAmount, height);
+					positions.push(dirxNext * xyAmount, diryNext * xyAmount, height);
 				}
 			}
+
+			frameGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
 		}
 
 		this.frame = new THREE.LineSegments(frameGeometry, new THREE.LineBasicMaterial({color: 0x000000}));

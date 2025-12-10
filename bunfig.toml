@@ -1,0 +1,74 @@
+# Bun configuration for Potree - WebGL Point Cloud Viewer
+# https://bun.sh/docs/runtime/bunfig
+
+[build]
+# Target modern browsers that support WebGL2
+target = "browser"
+
+# Generate source maps for debugging
+sourcemap = "external"
+
+# Entry points for bundling (will be configured in build scripts)
+# entrypoints = ["./src/Potree.js"]
+
+# Output directory
+# outdir = "./build/potree"
+
+# Minify production builds
+# minify = true
+
+[dev]
+# Development server settings
+# port = 8080
+
+[install]
+# Package installation settings
+# Faster installs by skipping optional dependencies
+optional = false
+
+# Cache directory
+cache = "node_modules/.cache/bun"
+
+[test]
+# Test configuration
+# preload = ["./test/setup.js"]
+
+# WebGL and Three.js specific settings
+[define]
+# Environment variables available at build time
+# "process.env.NODE_ENV" = "production"
+
+[loader]
+# Custom loaders for asset types common in WebGL projects
+".glsl" = "text"
+".vert" = "text"
+".frag" = "text"
+".wgsl" = "text"
+
+# Point cloud data formats
+".las" = "file"
+".laz" = "file"
+".ply" = "file"
+".xyz" = "file"
+
+# Binary formats
+".bin" = "file"
+".oct" = "file"
+
+# Asset loaders
+".png" = "file"
+".jpg" = "file"
+".jpeg" = "file"
+".svg" = "file"
+".gif" = "file"
+".webp" = "file"
+
+# Font loaders
+".woff" = "file"
+".woff2" = "file"
+".ttf" = "file"
+".eot" = "file"
+
+# JSON loaders
+".json" = "json"
+".json5" = "json"

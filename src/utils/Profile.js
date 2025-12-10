@@ -1,5 +1,5 @@
 
-import * as THREE from "../../libs/three.js/build/three.module.js";
+import * as THREE from "three";
 import {Utils} from "../utils.js";
 
 export class Profile extends THREE.Object3D{
@@ -84,11 +84,11 @@ export class Profile extends THREE.Object3D{
 
 		// edges & boxes
 		if (this.points.length > 1) {
-			let lineGeometry = new THREE.Geometry();
-			lineGeometry.vertices.push(new THREE.Vector3(), new THREE.Vector3());
-			lineGeometry.colors.push(this.lineColor, this.lineColor, this.lineColor);
+			let lineGeometry = new THREE.BufferGeometry();
+			const positions = new Float32Array([0, 0, 0, 0, 0, 0]);
+			lineGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 			let lineMaterial = new THREE.LineBasicMaterial({
-				vertexColors: THREE.VertexColors,
+				vertexColors: true,
 				linewidth: 2,
 				transparent: true,
 				opacity: 0.4
@@ -253,14 +253,16 @@ export class Profile extends THREE.Object3D{
 			}
 
 			if (leftEdge) {
-				leftEdge.geometry.vertices[1].copy(point);
-				leftEdge.geometry.verticesNeedUpdate = true;
+				const posAttr = leftEdge.geometry.attributes.position;
+				posAttr.setXYZ(1, point.x, point.y, point.z);
+				posAttr.needsUpdate = true;
 				leftEdge.geometry.computeBoundingSphere();
 			}
 
 			if (rightEdge) {
-				rightEdge.geometry.vertices[0].copy(point);
-				rightEdge.geometry.verticesNeedUpdate = true;
+				const posAttr = rightEdge.geometry.attributes.position;
+				posAttr.setXYZ(0, point.x, point.y, point.z);
+				posAttr.needsUpdate = true;
 				rightEdge.geometry.computeBoundingSphere();
 			}
 

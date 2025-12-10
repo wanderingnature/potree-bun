@@ -1,7 +1,6 @@
+#version 300 es
 
-#extension GL_EXT_frag_depth : enable
-
-// 
+//
 // adapted from the EDL shader code from Christian Boucheny in cloud compare:
 // https://github.com/cloudcompare/trunk/tree/master/plugins/qEDL/shaders/EDL
 //
@@ -19,7 +18,9 @@ uniform vec2 neighbours[NEIGHBOUR_COUNT];
 uniform float edlStrength;
 uniform float radius;
 
-varying vec2 vUv;
+in vec2 vUv;
+
+out vec4 fragColor;
 
 float response(float depth){
 	vec2 uvRadius = radius / vec2(screenWidth, screenHeight);
@@ -53,12 +54,12 @@ void main() {
 	if(depth >= 1.0 && res == 0.0){
 		discard;
 	}
-	
-	vec4 color = texture2D(uWeightMap, vUv); 
+
+	vec4 color = texture2D(uWeightMap, vUv);
 	color = color / color.w;
 	color = color * shade;
 
-	gl_FragColor = vec4(color.xyz, 1.0); 
+	fragColor = vec4(color.xyz, 1.0);
 
-	gl_FragDepthEXT = depth;
+	gl_FragDepth = depth;
 }

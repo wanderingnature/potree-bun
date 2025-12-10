@@ -1,6 +1,6 @@
 
 
-import * as THREE from "../../libs/three.js/build/three.module.js";
+import * as THREE from "three";
 import {PointCloudTree, PointCloudTreeNode} from "../PointCloudTree.js";
 import {PointCloudMaterial} from "../materials/PointCloudMaterial.js";
 import {PointSizeType, ClipTask, TreeType} from "../defines.js";
@@ -115,7 +115,7 @@ export class PointCloudArena4D extends PointCloudTree{
 		this.pcoGeometry = geometry;
 		this.boundingBox = this.pcoGeometry.boundingBox;
 		this.boundingSphere = this.pcoGeometry.boundingSphere;
-		this.material = new PointCloudMaterial({vertexColors: THREE.VertexColors, size: 0.05, treeType: TreeType.KDTREE});
+		this.material = new PointCloudMaterial({size: 0.05, treeType: TreeType.KDTREE});
 		this.material.sizeType = PointSizeType.ATTENUATED;
 		this.material.size = 0.05;
 		this.profileRequests = [];

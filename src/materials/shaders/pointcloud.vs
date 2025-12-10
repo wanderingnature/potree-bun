@@ -1,3 +1,4 @@
+#version 300 es
 
 precision highp float;
 precision highp int;
@@ -5,18 +6,18 @@ precision highp int;
 #define max_clip_polygons 8
 #define PI 3.141592653589793
 
-attribute vec3 position;
-attribute vec3 color;
-attribute float intensity;
-attribute float classification;
-attribute float returnNumber;
-attribute float numberOfReturns;
-attribute float pointSourceID;
-attribute vec4 indices;
-attribute float spacing;
-attribute float gpsTime;
-attribute vec3 normal;
-attribute float aExtra;
+in vec3 position;
+in vec3 color;
+in float intensity;
+in float classification;
+in float returnNumber;
+in float numberOfReturns;
+in float pointSourceID;
+in vec4 indices;
+in float spacing;
+in float gpsTime;
+in vec3 normal;
+in float aExtra;
 
 uniform mat4 modelMatrix;
 uniform mat4 modelViewMatrix;
@@ -123,11 +124,11 @@ uniform mat4 uShadowWorldView[num_shadowmaps];
 uniform mat4 uShadowProj[num_shadowmaps];
 #endif
 
-varying vec3	vColor;
-varying float	vLogDepth;
-varying vec3	vViewPosition;
-varying float 	vRadius;
-varying float 	vPointSize;
+out vec3	vColor;
+out float	vLogDepth;
+out vec3	vViewPosition;
+out float 	vRadius;
+out float 	vPointSize;
 
 
 float round(float number){
@@ -181,32 +182,7 @@ int numberOfOnes(int number, int index){
  *
  */
 bool isBitSet(int number, int index){
-
-	// weird multi else if due to lack of proper array, int and bitwise support in WebGL 1.0
-	int powi = 1;
-	if(index == 0){
-		powi = 1;
-	}else if(index == 1){
-		powi = 2;
-	}else if(index == 2){
-		powi = 4;
-	}else if(index == 3){
-		powi = 8;
-	}else if(index == 4){
-		powi = 16;
-	}else if(index == 5){
-		powi = 32;
-	}else if(index == 6){
-		powi = 64;
-	}else if(index == 7){
-		powi = 128;
-	}else{
-		return false;
-	}
-
-	int ndp = number / powi;
-
-	return mod(float(ndp), 2.0) != 0.0;
+	return (number & (1 << index)) != 0;
 }
 
 

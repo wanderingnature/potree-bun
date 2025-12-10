@@ -1,5 +1,5 @@
 
-import * as THREE from "../libs/three.js/build/three.module.js";
+import * as THREE from "three";
 import {XHRFactory} from "./XHRFactory.js";
 import {Volume} from "./utils/Volume.js";
 import {Profile} from "./utils/Profile.js";
@@ -74,13 +74,17 @@ export class Utils {
 
 	static debugLine(parent, start, end, color){
 
-		let material = new THREE.LineBasicMaterial({ color: color }); 
-		let geometry = new THREE.Geometry();
+		let material = new THREE.LineBasicMaterial({ color: color });
+		let geometry = new THREE.BufferGeometry();
 
 		const p1 = new THREE.Vector3(0, 0, 0);
 		const p2 = end.clone().sub(start);
 
-		geometry.vertices.push(p1, p2);
+		const positions = new Float32Array([
+			p1.x, p1.y, p1.z,
+			p2.x, p2.y, p2.z
+		]);
+		geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
 		let tl = new THREE.Line( geometry, material );
 		tl.position.copy(start);
@@ -90,9 +94,10 @@ export class Utils {
 		let line = {
 			node: tl,
 			set: (start, end) => {
-				geometry.vertices[0].copy(start);
-				geometry.vertices[1].copy(end);
-				geometry.verticesNeedUpdate = true;
+				const posAttr = geometry.attributes.position;
+				posAttr.setXYZ(0, start.x, start.y, start.z);
+				posAttr.setXYZ(1, end.x, end.y, end.z);
+				posAttr.needsUpdate = true;
 			},
 		};
 
@@ -102,7 +107,7 @@ export class Utils {
 	static debugCircle(parent, center, radius, normal, color){
 		let material = new THREE.LineBasicMaterial({ color: color });
 
-		let geometry = new THREE.Geometry();
+		let positions = [];
 
 		let n = 32;
 		for(let i = 0; i <= n; i++){
@@ -110,21 +115,25 @@ export class Utils {
 			let u1 = 2 * Math.PI * (i + 1) / n;
 
 			let p0 = new THREE.Vector3(
-				Math.cos(u0), 
-				Math.sin(u0), 
+				Math.cos(u0),
+				Math.sin(u0),
 				0
 			);
 
 			let p1 = new THREE.Vector3(
-				Math.cos(u1), 
-				Math.sin(u1), 
+				Math.cos(u1),
+				Math.sin(u1),
 				0
 			);
 
-			geometry.vertices.push(p0, p1); 
+			positions.push(p0.x, p0.y, p0.z);
+			positions.push(p1.x, p1.y, p1.z);
 		}
 
-		let tl = new THREE.Line( geometry, material ); 
+		let geometry = new THREE.BufferGeometry();
+		geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+
+		let tl = new THREE.Line( geometry, material );
 		tl.position.copy(center);
 		tl.scale.set(radius, radius, radius);
 
@@ -321,7 +330,7 @@ export class Utils {
 			}
 		}
 
-		let skyGeometry = new THREE.CubeGeometry(700, 700, 700);
+		let skyGeometry = new THREE.BoxGeometry(700, 700, 700);
 		let skybox = new THREE.Mesh(skyGeometry, materialArray);
 
 		scene.add(skybox);
@@ -342,18 +351,21 @@ export class Utils {
 			color: color || 0x888888
 		});
 
-		let geometry = new THREE.Geometry();
+		let positions = [];
 		for (let i = 0; i <= length; i++) {
-			geometry.vertices.push(new THREE.Vector3(-(spacing * width) / 2, i * spacing - (spacing * length) / 2, 0));
-			geometry.vertices.push(new THREE.Vector3(+(spacing * width) / 2, i * spacing - (spacing * length) / 2, 0));
+			positions.push(-(spacing * width) / 2, i * spacing - (spacing * length) / 2, 0);
+			positions.push(+(spacing * width) / 2, i * spacing - (spacing * length) / 2, 0);
 		}
 
 		for (let i = 0; i <= width; i++) {
-			geometry.vertices.push(new THREE.Vector3(i * spacing - (spacing * width) / 2, -(spacing * length) / 2, 0));
-			geometry.vertices.push(new THREE.Vector3(i * spacing - (spacing * width) / 2, +(spacing * length) / 2, 0));
+			positions.push(i * spacing - (spacing * width) / 2, -(spacing * length) / 2, 0);
+			positions.push(i * spacing - (spacing * width) / 2, +(spacing * length) / 2, 0);
 		}
 
-		let line = new THREE.LineSegments(geometry, material, THREE.LinePieces);
+		let geometry = new THREE.BufferGeometry();
+		geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+
+		let line = new THREE.LineSegments(geometry, material);
 		line.receiveShadow = true;
 		return line;
 	}
@@ -1079,7 +1091,7 @@ export class Utils {
 
 Utils.screenPass = new function () {
 	this.screenScene = new THREE.Scene();
-	this.screenQuad = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2, 1));
+	this.screenQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2, 1));
 	this.screenQuad.material.depthTest = true;
 	this.screenQuad.material.depthWrite = true;
 	this.screenQuad.material.transparent = true;

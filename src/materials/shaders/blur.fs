@@ -1,3 +1,7 @@
+#version 300 es
+
+precision mediump float;
+precision mediump int;
 
 uniform mat4 projectionMatrix;
 
@@ -8,7 +12,9 @@ uniform float far;
 
 uniform sampler2D map;
 
-varying vec2 vUv;
+in vec2 vUv;
+
+out vec4 fragColor;
 
 void main() {
 
@@ -27,6 +33,6 @@ void main() {
 	color += texture2D(map, vUv + vec2(+dx,  dy)).rgb;
 
 	color = color / 9.0;
-	
-	gl_FragColor = vec4(color, 1.0);
+
+	fragColor = vec4(color, 1.0);
 }

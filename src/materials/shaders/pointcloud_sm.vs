@@ -1,9 +1,10 @@
+#version 300 es
 
 precision mediump float;
 precision mediump int;
 
-attribute vec3 position;
-attribute vec3 color;
+in vec3 position;
+in vec3 color;
 
 uniform mat4 modelMatrix;
 uniform mat4 modelViewMatrix;
@@ -22,8 +23,8 @@ uniform float uVNStart;
 
 uniform sampler2D visibleNodes;
 
-varying float vLinearDepth;
-varying vec3 vColor;
+out float vLinearDepth;
+out vec3 vColor;
 
 #define PI 3.141592653589793
 
@@ -58,7 +59,7 @@ float numberOfOnes(float number, float index){
  *
  */
 bool isBitSet(float number, float index){
-	return mod(floor(number / pow(2.0, index)), 2.0) != 0.0;
+	return (int(number) & (1 << int(index))) != 0;
 }
 
 

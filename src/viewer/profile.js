@@ -1,5 +1,5 @@
 
-import * as THREE from "../../libs/three.js/build/three.module.js";
+import * as THREE from "three";
 import {Utils} from "../utils.js";
 import {Points} from "../Points.js";
 import {DXFProfileExporter} from "../exporter/DXFProfileExporter.js";
@@ -992,12 +992,12 @@ export class ProfileWindowController {
 		}
 
 		$("#potree_profile_rotate_cw").click( () => {
-			const radians = THREE.Math.degToRad(this.rotateAmount);
+			const radians = THREE.MathUtils.degToRad(this.rotateAmount);
 			rotate(-radians);
 		});
 
 		$("#potree_profile_rotate_ccw").click( () => {
-			const radians = THREE.Math.degToRad(this.rotateAmount);
+			const radians = THREE.MathUtils.degToRad(this.rotateAmount);
 			rotate(radians);
 		});
 

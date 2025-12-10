@@ -1,5 +1,5 @@
 
-import * as THREE from "../../libs/three.js/build/three.module.js";
+import * as THREE from "three";
 import {Annotation} from "../Annotation.js";
 import {CameraMode} from "../defines.js";
 import {View} from "./View.js";
@@ -381,7 +381,7 @@ export class Scene extends EventDispatcher{
 			texture.minFilter = texture.magFilter = THREE.NearestFilter;
 			texture.minFilter = texture.magFilter = THREE.LinearFilter;
 			let bg = new THREE.Mesh(
-				new THREE.PlaneBufferGeometry(2, 2, 1),
+				new THREE.PlaneGeometry(2, 2, 1),
 				new THREE.MeshBasicMaterial({
 					map: texture
 				})

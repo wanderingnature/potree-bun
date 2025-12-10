@@ -1,5 +1,5 @@
 
-import * as THREE from "../../libs/three.js/build/three.module.js";
+import * as THREE from "three";
 import {Utils} from "../utils.js";
 import {Gradients} from "./Gradients.js";
 import {Shaders} from "../../build/shaders/shaders.js";
@@ -161,7 +161,7 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 		this.vertexShader = Shaders['pointcloud.vs'];
 		this.fragmentShader = Shaders['pointcloud.fs'];
 		
-		this.vertexColors = THREE.VertexColors;
+		// vertexColors automatically enabled when color attribute exists in Three.js r128+
 
 		this.updateShaderSource();
 	}
