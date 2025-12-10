@@ -1,4 +1,4 @@
-
+import {config} from "./Config.js";
 
 class LRUItem{
 
@@ -140,7 +140,7 @@ class LRU{
 			return;
 		}
 
-		while (this.numPoints > Potree.pointLoadLimit) {
+		while (this.numPoints > config.pointLoadLimit) {
 			let element = this.first;
 			let node = element.node;
 			this.disposeDescendants(node);

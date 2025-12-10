@@ -1,5 +1,6 @@
 
 import * as THREE from "three";
+import {config} from "../../../Config.js";
 
 export class OctreeGeometry{
 
@@ -71,7 +72,7 @@ export class OctreeGeometryNode{
 
 	load(){
 
-		if (Potree.numNodesLoading >= Potree.maxNodesLoading) {
+		if (config.numNodesLoading >= config.maxNodesLoading) {
 			return;
 		}
 

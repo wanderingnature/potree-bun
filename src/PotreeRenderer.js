@@ -4,6 +4,7 @@ import {PointCloudTree} from "./PointCloudTree.js";
 import {PointCloudOctreeNode} from "./PointCloudOctree.js";
 import {PointCloudArena4DNode} from "./arena4d/PointCloudArena4D.js";
 import {PointSizeType, ClipTask, ElevationGradientRepeat} from "./defines.js";
+import {config} from "./Config.js";
 
 // Copied from three.js: WebGLRenderer.js
 function paramThreeToGL(_gl, p) {
@@ -697,7 +698,7 @@ export class Renderer {
 
 	renderNodes(octree, nodes, visibilityTextureData, camera, target, shader, params) {
 
-		if (Potree.measureTimings) performance.mark("renderNodes-start");
+		if (config.measureTimings) performance.mark("renderNodes-start");
 
 		let gl = this.gl;
 
@@ -1035,7 +1036,7 @@ export class Renderer {
 
 		gl.bindVertexArray(null);
 
-		if (Potree.measureTimings) {
+		if (config.measureTimings) {
 			performance.mark("renderNodes-end");
 			performance.measure("render.renderNodes", "renderNodes-start", "renderNodes-end");
 		}

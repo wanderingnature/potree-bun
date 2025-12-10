@@ -1,6 +1,7 @@
 
 import * as THREE from "three";
 import {EventDispatcher} from "../EventDispatcher.js";
+import {config} from "../Config.js";
 
 Potree.PointCloudArena4DGeometryNode = class PointCloudArena4DGeometryNode{
 
@@ -64,13 +65,13 @@ Potree.PointCloudArena4DGeometryNode = class PointCloudArena4DGeometryNode{
 			return;
 		}
 
-		if (Potree.numNodesLoading >= Potree.maxNodesLoading) {
+		if (config.numNodesLoading >= config.maxNodesLoading) {
 			return;
 		}
 
 		this.loading = true;
 
-		Potree.numNodesLoading++;
+		config.numNodesLoading++;
 
 		let url = this.pcoGeometry.url + '?node=' + this.number;
 		let node = this;
@@ -147,11 +148,11 @@ Potree.PointCloudArena4DGeometryNode = class PointCloudArena4DGeometryNode{
 			node.numPoints = numPoints;
 			node.loaded = true;
 			node.loading = false;
-			Potree.numNodesLoading--;
+			config.numNodesLoading--;
 		} catch (e) {
 			console.log('Failed to load node: ' + url + ', error: ' + e);
 			node.loading = false;
-			Potree.numNodesLoading--;
+			config.numNodesLoading--;
 		}
 	}
 

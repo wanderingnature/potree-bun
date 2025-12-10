@@ -15,6 +15,7 @@ import {BoxVolume} from "../utils/Volume.js";
 import {Features} from "../Features.js";
 import {Message} from "../utils/Message.js";
 import {Sidebar} from "./sidebar.js";
+import {config} from "../Config.js";
 
 import {AnnotationTool} from "../utils/AnnotationTool.js";
 import {MeasuringTool} from "../utils/MeasuringTool.js";
@@ -301,7 +302,6 @@ export class Viewer extends EventDispatcher{
 			this.setEDLOpacity(1.0);
 			this.setClipTask(ClipTask.HIGHLIGHT);
 			this.setClipMethod(ClipMethod.INSIDE_ANY);
-			this.setPointBudget(1*1000*1000);
 			this.setShowBoundingBox(false);
 			this.setFreeze(false);
 			this.setControls(this.orbitControls);
@@ -569,15 +569,15 @@ export class Viewer extends EventDispatcher{
 	}
 
 	setPointBudget (value) {
-		if (Potree.pointBudget !== value) {
-			Potree.pointBudget = parseInt(value);
+		if (config.pointBudget !== value) {
+			config.pointBudget = parseInt(value);
 			this.dispatchEvent({'type': 'point_budget_changed', 'viewer': this});
 		}
-	};
+	}
 
 	getPointBudget () {
-		return Potree.pointBudget;
-	};
+		return config.pointBudget;
+	}
 
 	setShowAnnotations (value) {
 		if (this.showAnnotations !== value) {
@@ -1614,19 +1614,19 @@ export class Viewer extends EventDispatcher{
 
 	update(delta, timestamp){
 
-		if(Potree.measureTimings) performance.mark("update-start");
+		if(config.measureTimings) performance.mark("update-start");
 
 		this.dispatchEvent({
 			type: 'update_start',
 			delta: delta,
 			timestamp: timestamp});
 
-		
+
 		const scene = this.scene;
 		const camera = scene.getActiveCamera();
 		const visiblePointClouds = this.scene.pointclouds.filter(pc => pc.visible)
-		
-		Potree.pointLoadLimit = Potree.pointBudget * 2;
+
+		config.pointLoadLimit = config.pointBudget * 2;
 
 		const lTarget = camera.position.clone().add(camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(1000));
 		this.scene.directionalLight.position.copy(camera.position);
@@ -1888,7 +1888,7 @@ export class Viewer extends EventDispatcher{
 			delta: delta,
 			timestamp: timestamp});
 			
-		if(Potree.measureTimings) {
+		if(config.measureTimings) {
 			performance.mark("update-end");
 			performance.measure("update", "update-start", "update-end");
 		}
@@ -2114,7 +2114,7 @@ export class Viewer extends EventDispatcher{
 	}
 	
 	render(){
-		if(Potree.measureTimings) performance.mark("render-start");
+		if(config.measureTimings) performance.mark("render-start");
 
 		try{
 
@@ -2129,15 +2129,15 @@ export class Viewer extends EventDispatcher{
 		}catch(e){
 			this.onCrash(e);
 		}
-		
-		if(Potree.measureTimings){
+
+		if(config.measureTimings){
 			performance.mark("render-end");
 			performance.measure("render", "render-start", "render-end");
 		}
 	}
 
 	resolveTimings(timestamp){
-		if(Potree.measureTimings){
+		if(config.measureTimings){
 			if(!this.toggle){
 				this.toggle = timestamp;
 			}
@@ -2242,7 +2242,7 @@ export class Viewer extends EventDispatcher{
 			this.stats.begin();
 		}
 
-		if(Potree.measureTimings){
+		if(config.measureTimings){
 			performance.mark("loop-start");
 		}
 
@@ -2260,14 +2260,14 @@ export class Viewer extends EventDispatcher{
 		// }
 
 
-		if(Potree.measureTimings){
+		if(config.measureTimings){
 			performance.mark("loop-end");
 			performance.measure("loop", "loop-start", "loop-end");
 		}
-		
+
 		this.resolveTimings(timestamp);
 
-		Potree.framenumber++;
+		config.framenumber++;
 
 		if(this.stats){
 			this.stats.end();

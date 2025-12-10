@@ -3,6 +3,7 @@
 import * as THREE from "three";
 import {Version} from "../Version.js";
 import {FetchFactory} from "../FetchFactory.js";
+import {config} from "../Config.js";
 
 /**
  * laslaz code taken and adapted from plas.io js-laslaz
@@ -163,7 +164,7 @@ export class LasLazBatcher{
 			this.node.numPoints = numPoints;
 			this.node.loaded = true;
 			this.node.loading = false;
-			Potree.numNodesLoading--;
+			config.numNodesLoading--;
 			this.node.mean = new THREE.Vector3(...e.data.mean);
 
 			Potree.workerPool.returnWorker(workerPath, worker);

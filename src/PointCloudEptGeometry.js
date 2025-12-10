@@ -1,6 +1,7 @@
 import {PointCloudTreeNode} from "./PointCloudTree.js";
 import {PointAttributes, PointAttribute, PointAttributeTypes} from "./loader/PointAttributes.js";
 import * as THREE from "three";
+import {config} from "./Config.js";
 
 class U {
 	static toVector3(v, offset) {
@@ -40,12 +41,72 @@ class U {
 	}
 
 	static maybeSrs(srs) {
-		try { 
-			proj4(srs) 
+		try {
+			proj4(srs)
 			return srs
 		} catch (e) {}
 	}
-};
+
+	/**
+	 * Attempts to parse and register a projection string with proj4.
+	 * Handles EPSG codes, proj4 strings, and OGC WKT strings.
+	 * @param {string} srs - The projection string (EPSG code, proj4, or WKT)
+	 * @returns {string|null} - A usable projection identifier or null if invalid
+	 */
+	static parseProjection(srs) {
+		if (!srs) return null;
+
+		// First, try using it directly (works for EPSG codes and proj4 strings)
+		try {
+			proj4(srs);
+			return srs;
+		} catch (e) {
+			// Continue to try other methods
+		}
+
+		// Try to extract EPSG code from WKT string
+		// For PROJCS or COMPD_CS, we want the PROJCS's AUTHORITY at the end of that block
+		// Pattern: Look for PROJCS[...AUTHORITY["EPSG","XXXX"]] where AUTHORITY is the last item before ]
+		// This regex finds all AUTHORITY tags and we'll check each one
+		const authorityMatches = srs.matchAll(/AUTHORITY\s*\[\s*"EPSG"\s*,\s*"?(\d+)"?\s*\]/gi);
+		for (const match of authorityMatches) {
+			const epsgCode = `EPSG:${match[1]}`;
+			try {
+				proj4(epsgCode);
+				console.log(`Using projection ${epsgCode} from WKT`);
+				return epsgCode;
+			} catch (e) {
+				// This EPSG code not in proj4's database, try next one
+			}
+		}
+
+		// Try to extract from PROJCS block specifically - look for the last AUTHORITY in PROJCS
+		const projcsMatch = srs.match(/PROJCS\s*\[[^\]]*?AUTHORITY\s*\[\s*"EPSG"\s*,\s*"?(\d+)"?\s*\]\s*\]/i);
+		if (projcsMatch) {
+			const epsgCode = `EPSG:${projcsMatch[1]}`;
+			try {
+				proj4(epsgCode);
+				console.log(`Using PROJCS projection ${epsgCode} from WKT`);
+				return epsgCode;
+			} catch (e) {
+				// Try to register with the EPSG code
+				console.warn(`EPSG:${projcsMatch[1]} not in proj4 database`);
+			}
+		}
+
+		// Try to register the WKT string with a custom name
+		try {
+			const customName = 'CUSTOM:' + Math.random().toString(36).substr(2, 9);
+			proj4.defs(customName, srs);
+			proj4(customName); // Verify it works
+			console.log(`Registered WKT as ${customName}`);
+			return customName;
+		} catch (e) {
+			console.warn('Failed to parse projection:', srs.substring(0, 100) + '...');
+			return null;
+		}
+	}
+}
 
 class BaseGeometry {
 	constructor({ 
@@ -66,12 +127,7 @@ class BaseGeometry {
 		this.loader = new Potree.CopcLaszipLoader();
 
 		this.spacing = spacing;
-		this.projection = srs || null;
-		try {
-			proj4(this.projection);
-		} catch(e) {
-			this.projection = null;
-		}
+		this.projection = U.parseProjection(srs);
 
 		const attributes = new PointAttributes();
 		attributes.add(PointAttribute.POSITION_CARTESIAN);
@@ -221,10 +277,10 @@ export class PointCloudCopcGeometryNode extends PointCloudTreeNode {
 
 	async load() {
 		if (this.loaded || this.loading) return;
-		if (Potree.numNodesLoading >= Potree.maxNodesLoading) return;
+		if (config.numNodesLoading >= config.maxNodesLoading) return;
 
 		this.loading = true;
-		++Potree.numNodesLoading;
+		++config.numNodesLoading;
 
 		if (!this.nodeinfo) await this.loadHierarchy();
 		this.loadPoints();
@@ -297,7 +353,7 @@ export class PointCloudCopcGeometryNode extends PointCloudTreeNode {
 		this.mean = mean;
 		this.loaded = true;
 		this.loading = false;
-		--Potree.numNodesLoading;
+		--config.numNodesLoading;
 	}
 
 	dispose() {

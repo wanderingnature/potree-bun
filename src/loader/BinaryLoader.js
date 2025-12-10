@@ -3,6 +3,7 @@
 import * as THREE from "three";
 import {Version} from "../Version.js";
 import {FetchFactory} from "../FetchFactory.js";
+import {config} from "../Config.js";
 
 
 export class BinaryLoader{
@@ -118,7 +119,7 @@ export class BinaryLoader{
 			node.loaded = true;
 			node.loading = false;
 			node.estimatedSpacing = data.estimatedSpacing;
-			Potree.numNodesLoading--;
+			config.numNodesLoading--;
 		};
 
 		let message = {

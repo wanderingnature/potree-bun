@@ -24,6 +24,10 @@ proj4.defs([
 	['EPSG:26917', '+proj=utm +zone=17 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs '],
 	['EPSG:26918', '+proj=utm +zone=18 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs '],
 	['EPSG:26919', '+proj=utm +zone=19 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs '],
+	// NAD83(2011) State Plane - US Survey Feet
+	['EPSG:6543', '+proj=lcc +lat_0=33.75 +lon_0=-79 +lat_1=36.1666666666667 +lat_2=34.3333333333333 +x_0=609601.219202438 +y_0=0 +ellps=GRS80 +units=us-ft +no_defs'], // North Carolina
+	['EPSG:6542', '+proj=lcc +lat_0=47.5 +lon_0=-100.5 +lat_1=48.7333333333333 +lat_2=47.4333333333333 +x_0=600000 +y_0=0 +ellps=GRS80 +units=us-ft +no_defs'], // North Dakota North
+	['EPSG:2264', '+proj=lcc +lat_0=33.75 +lon_0=-79 +lat_1=36.1666666666667 +lat_2=34.3333333333333 +x_0=609601.22 +y_0=0 +datum=NAD83 +units=us-ft +no_defs'], // NC State Plane NAD83
 ]);
 
 export class MapView{

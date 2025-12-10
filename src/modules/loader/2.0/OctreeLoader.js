@@ -2,6 +2,7 @@
 import * as THREE from "three";
 import {PointAttribute, PointAttributes, PointAttributeTypes} from "../../../loader/PointAttributes.js";
 import {OctreeGeometry, OctreeGeometryNode} from "./OctreeGeometry.js";
+import {config} from "../../../Config.js";
 
 // let loadedNodes = new Set();
 
@@ -18,7 +19,7 @@ export class NodeLoader{
 		}
 
 		node.loading = true;
-		Potree.numNodesLoading++;
+		config.numNodesLoading++;
 
 		// console.log(node.name, node.numPoints);
 
@@ -110,7 +111,7 @@ export class NodeLoader{
 				node.geometry = geometry;
 				node.loaded = true;
 				node.loading = false;
-				Potree.numNodesLoading--;
+				config.numNodesLoading--;
 			};
 
 			let pointAttributes = node.octreeGeometry.pointAttributes;
@@ -140,7 +141,7 @@ export class NodeLoader{
 		}catch(e){
 			node.loaded = false;
 			node.loading = false;
-			Potree.numNodesLoading--;
+			config.numNodesLoading--;
 
 			console.log(`failed to load ${node.name}`);
 			console.log(e);

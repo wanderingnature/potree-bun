@@ -3,6 +3,7 @@ import * as THREE from "three";
 import {ClipTask, ClipMethod} from "./defines.js";
 import {Box3Helper} from "./utils/Box3Helper.js";
 import {lru} from "./LRU.js";
+import {config} from "./Config.js";
 
 export function updatePointClouds(pointclouds, camera, renderer){
 
@@ -177,7 +178,7 @@ export function updateVisibility(pointclouds, camera, renderer){
 		let maxLevel = pointcloud.maxLevel || Infinity;
 		let level = node.getLevel();
 		let visible = insideFrustum;
-		visible = visible && !(numVisiblePoints + node.getNumPoints() > Potree.pointBudget);
+		visible = visible && !(numVisiblePoints + node.getNumPoints() > config.pointBudget);
 		visible = visible && !(numVisiblePointsInPointclouds.get(pointcloud) + node.getNumPoints() > pointcloud.pointBudget);
 		visible = visible && level < maxLevel;
 		visible = visible || node.getLevel() <= 2;
@@ -280,7 +281,7 @@ export function updateVisibility(pointclouds, camera, renderer){
 			lowestSpacing = Math.min(lowestSpacing, node.geometryNode.spacing);
 		}
 
-		if (numVisiblePoints + node.getNumPoints() > Potree.pointBudget) {
+		if (numVisiblePoints + node.getNumPoints() > config.pointBudget) {
 			break;
 		}
 
@@ -404,7 +405,7 @@ export function updateVisibility(pointclouds, camera, renderer){
 		}
 	}
 
-	for (let i = 0; i < Math.min(Potree.maxNodesLoading, unloadedGeometry.length); i++) {
+	for (let i = 0; i < Math.min(config.maxNodesLoading, unloadedGeometry.length); i++) {
 		unloadedGeometry[i].load();
 	}
 

@@ -4,6 +4,7 @@ import {PointCloudTree, PointCloudTreeNode} from "./PointCloudTree.js";
 import {PointCloudOctreeGeometryNode} from "./PointCloudOctreeGeometry.js";
 import {Utils} from "./utils.js";
 import {PointCloudMaterial} from "./materials/PointCloudMaterial.js";
+import {config} from "./Config.js";
 
 
 export class PointCloudOctreeNode extends PointCloudTreeNode {
@@ -320,7 +321,7 @@ export class PointCloudOctree extends PointCloudTree {
 
 	computeVisibilityTextureData(nodes, camera){
 
-		if(Potree.measureTimings) performance.mark("computeVisibilityTextureData-start");
+		if(config.measureTimings) performance.mark("computeVisibilityTextureData-start");
 
 		let data = new Uint8Array(nodes.length * 4);
 		let visibleNodeTextureOffsets = new Map();
@@ -379,7 +380,7 @@ export class PointCloudOctree extends PointCloudTree {
 
 		}
 
-		if(Potree.measureTimings){
+		if(config.measureTimings){
 			performance.mark("computeVisibilityTextureData-end");
 			performance.measure("render.computeVisibilityTextureData", "computeVisibilityTextureData-start", "computeVisibilityTextureData-end");
 		}

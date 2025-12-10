@@ -4,6 +4,7 @@ import {PointCloudSM} from "../utils/PointCloudSM.js";
 import {EyeDomeLightingMaterial} from "../materials/EyeDomeLightingMaterial.js";
 import {SphereVolume} from "../utils/Volume.js";
 import {Utils} from "../utils.js";
+import {config} from "../Config.js";
 
 export class EDLRenderer{
 	constructor(viewer){
@@ -199,13 +200,13 @@ export class EDLRenderer{
 		const visiblePointClouds = viewer.scene.pointclouds.filter(pc => pc.visible);
 
 		if(this.screenshot){
-			let oldBudget = Potree.pointBudget;
-			Potree.pointBudget = Math.max(10 * 1000 * 1000, 2 * oldBudget);
+			let oldBudget = config.pointBudget;
+			config.pointBudget = Math.max(10 * 1000 * 1000, 2 * oldBudget);
 			let result = Potree.updatePointClouds(
-				viewer.scene.pointclouds, 
-				camera, 
+				viewer.scene.pointclouds,
+				camera,
 				viewer.renderer);
-			Potree.pointBudget = oldBudget;
+			config.pointBudget = oldBudget;
 		}
 
 		let lights = [];
