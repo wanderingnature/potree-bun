@@ -78,7 +78,7 @@ float getLOD(){
 		index3d = floor(index3d + 0.5);
 		float index = 4.0 * index3d.x + 2.0 * index3d.y + index3d.z;
 		
-		vec4 value = texture2D(visibleNodes, vec2(iOffset / 2048.0, 0.0));
+		vec4 value = texture(visibleNodes, vec2(iOffset / 2048.0, 0.0));
 		float mask = value.r * 255.0;
 		if(isBitSet(mask, index)){
 			// there are more visible child nodes at this position

@@ -1,6 +1,7 @@
 
 import * as THREE from "three";
 import {Shaders} from "../../build/shaders/shaders.js";
+import {prependDefines} from "./shaderUtils.js";
 
 //
 // Algorithm by Christian Boucheny
@@ -31,14 +32,23 @@ export class EyeDomeLightingMaterial extends THREE.RawShaderMaterial{
 			uProj:          { type: "Matrix4fv", value: [] },
 		};
 
+		this._neighbourCount = 8;
+		this.neighbours = new Float32Array(this._neighbourCount * 2);
+		for (let c = 0; c < this._neighbourCount; c++) {
+			this.neighbours[2 * c + 0] = Math.cos(2 * c * Math.PI / this._neighbourCount);
+			this.neighbours[2 * c + 1] = Math.sin(2 * c * Math.PI / this._neighbourCount);
+		}
+
+		// Set neighbours uniform value before passing to setValues
+		uniforms.neighbours.value = this.neighbours;
+
 		this.setValues({
 			uniforms: uniforms,
-			vertexShader: this.getDefines() + Shaders['edl.vs'],
-			fragmentShader: this.getDefines() + Shaders['edl.fs'],
-			lights: false
+			vertexShader: prependDefines(Shaders['edl.vs'], this.getDefines(), { stripVersion: true }),
+			fragmentShader: prependDefines(Shaders['edl.fs'], this.getDefines(), { stripVersion: true }),
+			lights: false,
+			glslVersion: THREE.GLSL3
 		});
-
-		this.neighbourCount = 8;
 	}
 
 	getDefines() {
@@ -51,8 +61,8 @@ export class EyeDomeLightingMaterial extends THREE.RawShaderMaterial{
 
 	updateShaderSource() {
 
-		let vs = this.getDefines() + Shaders['edl.vs'];
-		let fs = this.getDefines() + Shaders['edl.fs'];
+		let vs = prependDefines(Shaders['edl.vs'], this.getDefines(), { stripVersion: true });
+		let fs = prependDefines(Shaders['edl.fs'], this.getDefines(), { stripVersion: true });
 
 		this.setValues({
 			vertexShader: vs,

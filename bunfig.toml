@@ -31,7 +31,8 @@ cache = "node_modules/.cache/bun"
 
 [test]
 # Test configuration
-# preload = ["./test/setup.js"]
+# Exclude external libs from test scanning
+root = "tests"
 
 # WebGL and Three.js specific settings
 [define]

@@ -35,7 +35,7 @@ float response(float depth){
 	for(int i = 0; i < NEIGHBOUR_COUNT; i++){
 		vec2 uvNeighbor = vUv + uvRadius * neighbours[i];
 		
-		float neighbourDepth = texture2D(uEDLColor, uvNeighbor).a;
+		float neighbourDepth = texture(uEDLColor, uvNeighbor).a;
 		neighbourDepth = (neighbourDepth == 1.0) ? 0.0 : neighbourDepth;
 
 		if(neighbourDepth != 0.0){
@@ -51,7 +51,7 @@ float response(float depth){
 }
 
 void main(){
-	vec4 cEDL = texture2D(uEDLColor, vUv);
+	vec4 cEDL = texture(uEDLColor, vUv);
 
 	float depth = cEDL.a;
 	depth = (depth == 1.0) ? 0.0 : depth;

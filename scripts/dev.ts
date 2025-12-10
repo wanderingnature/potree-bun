@@ -1,9 +1,14 @@
-import { watch } from "fs";
+import { watch, readFileSync } from "fs";
 import { resolve, join, extname } from "path";
 import { existsSync } from "fs";
 
-const PORT = 1234;
+const PORT = 3443;
+const HOST = "0.0.0.0";
 const PROJECT_ROOT = resolve(import.meta.dir, "..");
+
+// SSL certificates for HTTPS (required for WebXR)
+const SSL_KEY_PATH = "/media/nicholas/PROJECTS/ssl/ubuntu-dev.key";
+const SSL_CERT_PATH = "/media/nicholas/PROJECTS/ssl/ubuntu-dev.crt";
 const WATCH_DIR = join(PROJECT_ROOT, "src");
 
 // MIME type mappings
@@ -97,9 +102,25 @@ function getMimeType(filePath: string): string {
   return MIME_TYPES[ext] || "application/octet-stream";
 }
 
+// Load SSL certificates
+let tlsConfig: { key: string; cert: string } | undefined;
+if (existsSync(SSL_KEY_PATH) && existsSync(SSL_CERT_PATH)) {
+  tlsConfig = {
+    key: readFileSync(SSL_KEY_PATH, "utf-8"),
+    cert: readFileSync(SSL_CERT_PATH, "utf-8"),
+  };
+  console.log("🔒 SSL certificates loaded");
+} else {
+  console.warn("⚠️  SSL certificates not found, running without HTTPS");
+  console.warn(`   Expected key: ${SSL_KEY_PATH}`);
+  console.warn(`   Expected cert: ${SSL_CERT_PATH}`);
+}
+
 // Create the static file server
 const server = Bun.serve({
   port: PORT,
+  hostname: HOST,
+  tls: tlsConfig,
   async fetch(request) {
     const url = new URL(request.url);
     const pathname = url.pathname;
@@ -129,7 +150,10 @@ const server = Bun.serve({
   },
 });
 
-console.log(`🚀 Development server running at http://localhost:${PORT}`);
+const protocol = tlsConfig ? "https" : "http";
+console.log(`🚀 Development server running at ${protocol}://${HOST}:${PORT}`);
+console.log(`   Local: ${protocol}://localhost:${PORT}`);
+console.log(`   Network: ${protocol}://ubuntu-dev:${PORT}`);
 console.log(`📂 Serving files from: ${PROJECT_ROOT}`);
 console.log(`👀 Watching for changes in: ${WATCH_DIR}\n`);
 

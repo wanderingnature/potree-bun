@@ -1,6 +1,6 @@
 
 import * as THREE from "three";
-import {XHRFactory} from "../../XHRFactory.js";
+import {FetchFactory} from "../../FetchFactory.js";
 
 export class EptBinaryLoader {
 	extension() {
@@ -11,31 +11,16 @@ export class EptBinaryLoader {
 		return Potree.scriptPath + '/workers/EptBinaryDecoderWorker.js';
 	}
 
-	load(node) {
+	async load(node) {
 		if (node.loaded) return;
 
 		let url = node.url() + this.extension();
 
-		let xhr = XHRFactory.createXMLHttpRequest();
-		xhr.open('GET', url, true);
-		xhr.responseType = 'arraybuffer';
-		xhr.overrideMimeType('text/plain; charset=x-user-defined');
-		xhr.onreadystatechange = () => {
-			if (xhr.readyState === 4) {
-				if (xhr.status === 200) {
-					let buffer = xhr.response;
-					this.parse(node, buffer);
-				} else {
-					console.log('Failed ' + url + ': ' + xhr.status);
-				}
-			}
-		};
-
 		try {
-			xhr.send(null);
-		}
-		catch (e) {
-			console.log('Failed request: ' + e);
+			const buffer = await FetchFactory.fetchArrayBuffer(url);
+			this.parse(node, buffer);
+		} catch (e) {
+			console.log('Failed ' + url + ': ' + e);
 		}
 	}
 

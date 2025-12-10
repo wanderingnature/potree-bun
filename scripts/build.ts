@@ -119,6 +119,7 @@ async function buildShaders(): Promise<void> {
 		}
 
 		const content = await readFile(fullPath, "utf-8");
+		// Keep #version 300 es in shaders - shaderUtils.js inserts defines after it
 		components.push(`Shaders["${filename}"] = \`${content}\`;`);
 	}
 
@@ -181,11 +182,12 @@ async function buildMainBundle(): Promise<void> {
 	// Build main Potree bundle
 	await ensureDir(join(BUILD_DIR, "potree"));
 
+	// Build as IIFE format to create global Potree variable
 	const mainResult = await Bun.build({
 		entrypoints: [join(PROJECT_ROOT, "src/Potree.js")],
 		outdir: join(BUILD_DIR, "potree"),
 		naming: "potree.js",
-		format: "esm",
+		format: "iife",
 		minify: IS_PRODUCTION,
 		sourcemap: IS_PRODUCTION ? "none" : "external",
 		target: "browser",
@@ -198,6 +200,23 @@ async function buildMainBundle(): Promise<void> {
 		}
 		throw new Error("Failed to build main bundle");
 	}
+
+	// Post-process: modify the IIFE to expose exports as global Potree
+	const outputPath = join(BUILD_DIR, "potree", "potree.js");
+	let content = await readFile(outputPath, "utf-8");
+
+	// Bun's IIFE creates an exports_Potree object with all exports
+	// We need to modify it to assign this to window.Potree
+	// The structure is: (() => { ... exports_Potree ... })();
+
+	// Replace the final })(); with code that exposes exports_Potree as window.Potree
+	// The pattern is: })(jQuery);\n})();\n\n//# debugId=...\n
+	content = content.replace(
+		/(\}\)\(\);)(\s*)(\/\/# debugId=.*)?\s*$/,
+		`window.Potree = exports_Potree;\n$1$2$3\n`
+	);
+
+	await writeFile(outputPath, content, "utf-8");
 
 	const elapsed = Date.now() - startTime;
 	console.log(`✓ Main bundle built in ${formatTime(elapsed)}`);

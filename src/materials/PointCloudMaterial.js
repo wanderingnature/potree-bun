@@ -5,6 +5,7 @@ import {Gradients} from "./Gradients.js";
 import {Shaders} from "../../build/shaders/shaders.js";
 import {ClassificationScheme} from "./ClassificationScheme.js";
 import {PointSizeType, PointShape, TreeType, ElevationGradientRepeat} from "../defines.js";
+import {prependDefines} from "./shaderUtils.js";
 
 //
 // how to calculate the radius of a projected sphere in screen space
@@ -160,7 +161,8 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 
 		this.vertexShader = Shaders['pointcloud.vs'];
 		this.fragmentShader = Shaders['pointcloud.fs'];
-		
+		this.glslVersion = THREE.GLSL3;
+
 		// vertexColors automatically enabled when color attribute exists in Three.js r128+
 
 		this.updateShaderSource();
@@ -183,24 +185,11 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 
 	updateShaderSource () {
 
-		let vs = Shaders['pointcloud.vs'];
-		let fs = Shaders['pointcloud.fs'];
 		let definesString = this.getDefines();
 
-		let vsVersionIndex = vs.indexOf("#version ");
-		let fsVersionIndex = fs.indexOf("#version ");
-
-		if(vsVersionIndex >= 0){
-			vs = vs.replace(/(#version .*)/, `$1\n${definesString}`)
-		}else{
-			vs = `${definesString}\n${vs}`;
-		}
-
-		if(fsVersionIndex >= 0){
-			fs = fs.replace(/(#version .*)/, `$1\n${definesString}`)
-		}else{
-			fs = `${definesString}\n${fs}`;
-		}
+		// Use prependDefines to ensure #version 300 es comes first
+		let vs = prependDefines(Shaders['pointcloud.vs'], definesString);
+		let fs = prependDefines(Shaders['pointcloud.fs'], definesString);
 
 		this.vertexShader = vs;
 		this.fragmentShader = fs;

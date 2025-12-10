@@ -1229,39 +1229,40 @@ export class Viewer extends EventDispatcher{
 			elButtons.append(imgMapToggle);
 
 
-			VRButton.createButton(this.renderer).then(vrButton => {
+			// Three.js r170+: VRButton.createButton returns DOM element directly
+			try {
+				const vrButton = VRButton.createButton(this.renderer);
 
 				if(vrButton == null){
 					console.log("VR not supported or active.");
+				} else {
+					this.renderer.xr.enabled = true;
 
-					return;
+					vrButton.style.position = "";
+					vrButton.style.bottom = "";
+					vrButton.style.left = "";
+					vrButton.style.margin = "4px";
+					vrButton.style.fontSize = "100%";
+					vrButton.style.width = "2.5em";
+					vrButton.style.height = "2.5em";
+					vrButton.style.padding = "0";
+					vrButton.style.textShadow = "black 2px 2px 2px";
+					vrButton.style.display = "block";
+
+					elButtons.append(vrButton);
+
+					// XR session events
+					this.renderer.xr.addEventListener('sessionstart', () => {
+						this.dispatchEvent({type: "vr_start"});
+					});
+
+					this.renderer.xr.addEventListener('sessionend', () => {
+						this.dispatchEvent({type: "vr_end"});
+					});
 				}
-
-				this.renderer.xr.enabled = true;
-
-				let element = vrButton.element;
-
-				element.style.position = "";
-				element.style.bottom = "";
-				element.style.left = "";
-				element.style.margin = "4px";
-				element.style.fontSize = "100%";
-				element.style.width = "2.5em";
-				element.style.height = "2.5em";
-				element.style.padding = "0";
-				element.style.textShadow = "black 2px 2px 2px";
-				element.style.display = "block";
-
-				elButtons.append(element);
-
-				vrButton.onStart(() => {
-					this.dispatchEvent({type: "vr_start"});
-				});
-
-				vrButton.onEnd(() => {
-					this.dispatchEvent({type: "vr_end"});
-				});
-			});
+			} catch(e) {
+				console.log("VR not supported:", e.message);
+			}
 
 			this.mapView = new MapView(this);
 			this.mapView.init();
@@ -1428,7 +1429,7 @@ export class Viewer extends EventDispatcher{
 
 		let canvas = document.createElement("canvas");
 
-		let context = canvas.getContext('webgl', contextAttributes );
+		let context = canvas.getContext('webgl2', contextAttributes );
 
 		this.renderer = new THREE.WebGLRenderer({
 			alpha: true, 

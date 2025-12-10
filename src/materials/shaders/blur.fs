@@ -22,15 +22,15 @@ void main() {
 	float dy = 1.0 / screenHeight;
 
 	vec3 color = vec3(0.0, 0.0, 0.0);
-	color += texture2D(map, vUv + vec2(-dx, -dy)).rgb;
-	color += texture2D(map, vUv + vec2(  0, -dy)).rgb;
-	color += texture2D(map, vUv + vec2(+dx, -dy)).rgb;
-	color += texture2D(map, vUv + vec2(-dx,   0)).rgb;
-	color += texture2D(map, vUv + vec2(  0,   0)).rgb;
-	color += texture2D(map, vUv + vec2(+dx,   0)).rgb;
-	color += texture2D(map, vUv + vec2(-dx,  dy)).rgb;
-	color += texture2D(map, vUv + vec2(  0,  dy)).rgb;
-	color += texture2D(map, vUv + vec2(+dx,  dy)).rgb;
+	color += texture(map, vUv + vec2(-dx, -dy)).rgb;
+	color += texture(map, vUv + vec2(  0, -dy)).rgb;
+	color += texture(map, vUv + vec2(+dx, -dy)).rgb;
+	color += texture(map, vUv + vec2(-dx,   0)).rgb;
+	color += texture(map, vUv + vec2(  0,   0)).rgb;
+	color += texture(map, vUv + vec2(+dx,   0)).rgb;
+	color += texture(map, vUv + vec2(-dx,  dy)).rgb;
+	color += texture(map, vUv + vec2(  0,  dy)).rgb;
+	color += texture(map, vUv + vec2(+dx,  dy)).rgb;
 
 	color = color / 9.0;
 

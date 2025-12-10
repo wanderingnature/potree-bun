@@ -1,6 +1,7 @@
 
 import * as THREE from "three";
 import {Shaders} from "../../build/shaders/shaders.js";
+import {prependDefines} from "./shaderUtils.js";
 
 
 export class NormalizationEDLMaterial extends THREE.RawShaderMaterial{
@@ -19,13 +20,22 @@ export class NormalizationEDLMaterial extends THREE.RawShaderMaterial{
 			uWeightMap:     { type: 't',   value: null },
 		};
 
+		this._neighbourCount = 8;
+		this.neighbours = new Float32Array(this._neighbourCount * 2);
+		for (let c = 0; c < this._neighbourCount; c++) {
+			this.neighbours[2 * c + 0] = Math.cos(2 * c * Math.PI / this._neighbourCount);
+			this.neighbours[2 * c + 1] = Math.sin(2 * c * Math.PI / this._neighbourCount);
+		}
+
+		// Set neighbours uniform value before passing to setValues
+		uniforms.neighbours.value = this.neighbours;
+
 		this.setValues({
 			uniforms: uniforms,
-			vertexShader: this.getDefines() + Shaders['normalize.vs'],
-			fragmentShader: this.getDefines() + Shaders['normalize_and_edl.fs'],
+			vertexShader: prependDefines(Shaders['normalize.vs'], this.getDefines(), { stripVersion: true }),
+			fragmentShader: prependDefines(Shaders['normalize_and_edl.fs'], this.getDefines(), { stripVersion: true }),
+			glslVersion: THREE.GLSL3
 		});
-
-		this.neighbourCount = 8;
 	}
 
 	getDefines() {
@@ -38,8 +48,8 @@ export class NormalizationEDLMaterial extends THREE.RawShaderMaterial{
 
 	updateShaderSource() {
 
-		let vs = this.getDefines() + Shaders['normalize.vs'];
-		let fs = this.getDefines() + Shaders['normalize_and_edl.fs'];
+		let vs = prependDefines(Shaders['normalize.vs'], this.getDefines(), { stripVersion: true });
+		let fs = prependDefines(Shaders['normalize_and_edl.fs'], this.getDefines(), { stripVersion: true });
 
 		this.setValues({
 			vertexShader: vs,

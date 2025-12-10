@@ -171,4 +171,7 @@ class LRU{
 
 }
 
-export {LRU, LRUItem};
+// Shared LRU instance
+const lru = new LRU();
+
+export {LRU, LRUItem, lru};

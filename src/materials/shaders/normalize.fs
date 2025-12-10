@@ -11,7 +11,7 @@ in vec2 vUv;
 out vec4 fragColor;
 
 void main() {
-	float depth = texture2D(uDepthMap, vUv).r;
+	float depth = texture(uDepthMap, vUv).r;
 
 	if(depth >= 1.0){
 		discard;
@@ -19,7 +19,7 @@ void main() {
 
 	fragColor = vec4(depth, 1.0, 0.0, 1.0);
 
-	vec4 color = texture2D(uWeightMap, vUv);
+	vec4 color = texture(uWeightMap, vUv);
 	color = color / color.w;
 
 	fragColor = vec4(color.xyz, 1.0);

@@ -21,6 +21,7 @@ export * from "./utils.js";
 export * from "./Version.js";
 export * from "./WorkerPool.js";
 export * from "./XHRFactory.js";
+export * from "./FetchFactory.js";
 export * from "./viewer/SaveProject.js";
 export * from "./viewer/LoadProject.js";
 
@@ -79,7 +80,7 @@ import "./extensions/OrthographicCamera.js";
 import "./extensions/PerspectiveCamera.js";
 import "./extensions/Ray.js";
 
-import {LRU} from "./LRU.js";
+import {LRU, lru} from "./LRU.js";
 import {OctreeLoader} from "./modules/loader/2.0/OctreeLoader.js";
 import {POCLoader} from "./loader/POCLoader.js";
 import {CopcLoader, EptLoader} from "./loader/EptLoader.js";
@@ -94,7 +95,8 @@ export const version = {
 	suffix: '.0'
 };
 
-export let lru = new LRU();
+// Re-export shared lru instance from LRU.js
+export {lru};
 
 console.log('Potree ' + version.major + '.' + version.minor + version.suffix);
 
@@ -112,13 +114,22 @@ if (document.currentScript && document.currentScript.src) {
 	if (scriptPath.slice(-1) === '/') {
 		scriptPath = scriptPath.slice(0, -1);
 	}
-} else if(import.meta){
-	scriptPath = new URL(import.meta.url + "/..").href;
-	if (scriptPath.slice(-1) === '/') {
-		scriptPath = scriptPath.slice(0, -1);
+} else {
+	// Fallback: find script tag by searching for potree.js
+	const scripts = document.getElementsByTagName('script');
+	for (let i = 0; i < scripts.length; i++) {
+		const src = scripts[i].src;
+		if (src.indexOf('potree.js') !== -1 || src.indexOf('potree.min.js') !== -1) {
+			scriptPath = new URL(src + '/..').href;
+			if (scriptPath.slice(-1) === '/') {
+				scriptPath = scriptPath.slice(0, -1);
+			}
+			break;
+		}
 	}
-}else {
-	console.error('Potree was unable to find its script path using document.currentScript. Is Potree included with a script tag? Does your browser support this function?');
+	if (!scriptPath) {
+		console.error('Potree was unable to find its script path. Is Potree included with a script tag?');
+	}
 }
 
 let resourcePath = scriptPath + '/resources';

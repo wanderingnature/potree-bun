@@ -1,6 +1,6 @@
 
 import * as THREE from "three";
-import {XHRFactory} from "./XHRFactory.js";
+import {FetchFactory} from "./FetchFactory.js";
 import {Volume} from "./utils/Volume.js";
 import {Profile} from "./utils/Profile.js";
 import {Measure} from "./utils/Measure.js";
@@ -45,14 +45,8 @@ export class Utils {
 		return u.protocol + '//' + u.hostname + u.pathname.replace(/\/+/g, '/');
 	};
 
-	static pathExists (url) {
-		let req = XHRFactory.createXMLHttpRequest();
-		req.open('GET', url, false);
-		req.send(null);
-		if (req.status !== 200) {
-			return false;
-		}
-		return true;
+	static async pathExists (url) {
+		return FetchFactory.pathExists(url);
 	};
 
 	static debugSphere(parent, position, scale, color){
@@ -377,7 +371,8 @@ export class Utils {
 
 		// map.magFilter = THREE.NearestFilter;
 		let size = width * height;
-		let data = new Uint8Array(3 * size);
+		// Use RGBA (4 bytes per pixel) - RGBFormat removed in Three.js r137+
+		let data = new Uint8Array(4 * size);
 
 		let chroma = [1, 1.5, 1.7];
 		let max = gauss(0, 0);
@@ -395,13 +390,14 @@ export class Utils {
 
 				// d = Math.pow(d, 0.6);
 
-				data[3 * i + 0] = 255 * (d / 15 + 0.05 + r) * chroma[0];
-				data[3 * i + 1] = 255 * (d / 15 + 0.05 + r) * chroma[1];
-				data[3 * i + 2] = 255 * (d / 15 + 0.05 + r) * chroma[2];
+				data[4 * i + 0] = 255 * (d / 15 + 0.05 + r) * chroma[0];
+				data[4 * i + 1] = 255 * (d / 15 + 0.05 + r) * chroma[1];
+				data[4 * i + 2] = 255 * (d / 15 + 0.05 + r) * chroma[2];
+				data[4 * i + 3] = 255; // Alpha
 			}
 		}
 
-		let texture = new THREE.DataTexture(data, width, height, THREE.RGBFormat);
+		let texture = new THREE.DataTexture(data, width, height, THREE.RGBAFormat);
 		texture.needsUpdate = true;
 
 		return texture;

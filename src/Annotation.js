@@ -44,7 +44,7 @@ export class Annotation extends EventDispatcher {
 		this.parent = null;
 		this.boundingBox = new THREE.Box3();
 
-		let iconClose = exports.resourcePath + '/icons/close.svg';
+		let iconClose = Potree.resourcePath + '/icons/close.svg';
 
 		this.domElement = $(`
 			<div class="annotation" oncontextmenu="return false;">

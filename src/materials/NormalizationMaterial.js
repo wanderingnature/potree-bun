@@ -1,6 +1,7 @@
 
 import * as THREE from "three";
 import {Shaders} from "../../build/shaders/shaders.js";
+import {prependDefines} from "./shaderUtils.js";
 
 export class NormalizationMaterial extends THREE.RawShaderMaterial{
 
@@ -14,8 +15,9 @@ export class NormalizationMaterial extends THREE.RawShaderMaterial{
 
 		this.setValues({
 			uniforms: uniforms,
-			vertexShader: this.getDefines() + Shaders['normalize.vs'],
-			fragmentShader: this.getDefines() + Shaders['normalize.fs'],
+			vertexShader: prependDefines(Shaders['normalize.vs'], this.getDefines(), { stripVersion: true }),
+			fragmentShader: prependDefines(Shaders['normalize.fs'], this.getDefines(), { stripVersion: true }),
+			glslVersion: THREE.GLSL3
 		});
 	}
 
@@ -27,8 +29,8 @@ export class NormalizationMaterial extends THREE.RawShaderMaterial{
 
 	updateShaderSource() {
 
-		let vs = this.getDefines() + Shaders['normalize.vs'];
-		let fs = this.getDefines() + Shaders['normalize.fs'];
+		let vs = prependDefines(Shaders['normalize.vs'], this.getDefines(), { stripVersion: true });
+		let fs = prependDefines(Shaders['normalize.fs'], this.getDefines(), { stripVersion: true });
 
 		this.setValues({
 			vertexShader: vs,

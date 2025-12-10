@@ -59,7 +59,7 @@ Potree.PointCloudArena4DGeometryNode = class PointCloudArena4DGeometryNode{
 		return this.level;
 	}
 
-	load(){
+	async load(){
 		if (this.loaded || this.loading) {
 			return;
 		}
@@ -73,18 +73,11 @@ Potree.PointCloudArena4DGeometryNode = class PointCloudArena4DGeometryNode{
 		Potree.numNodesLoading++;
 
 		let url = this.pcoGeometry.url + '?node=' + this.number;
-		let xhr = Potree.XHRFactory.createXMLHttpRequest();
-		xhr.open('GET', url, true);
-		xhr.responseType = 'arraybuffer';
-
 		let node = this;
 
-		xhr.onreadystatechange = function () {
-			if (!(xhr.readyState === 4 && xhr.status === 200)) {
-				return;
-			}
+		try {
+			const buffer = await Potree.FetchFactory.fetchArrayBuffer(url);
 
-			let buffer = xhr.response;
 			let sourceView = new DataView(buffer);
 			let numPoints = buffer.byteLength / 17;
 			let bytesPerPoint = 28;
@@ -147,18 +140,19 @@ Potree.PointCloudArena4DGeometryNode = class PointCloudArena4DGeometryNode{
 			geometry.setAttribute('classification', new THREE.BufferAttribute(classifications, 1));
 			{
 				let bufferAttribute = new THREE.BufferAttribute(new Uint8Array(indices), 4, true);
-				//bufferAttribute.normalized = true;
 				geometry.setAttribute('indices', bufferAttribute);
 			}
-		
+
 			node.geometry = geometry;
 			node.numPoints = numPoints;
 			node.loaded = true;
 			node.loading = false;
 			Potree.numNodesLoading--;
-		};
-
-		xhr.send(null);
+		} catch (e) {
+			console.log('Failed to load node: ' + url + ', error: ' + e);
+			node.loading = false;
+			Potree.numNodesLoading--;
+		}
 	}
 
 	dispose(){
@@ -206,67 +200,50 @@ Potree.PointCloudArena4DGeometry = class PointCloudArena4DGeometry extends Event
 		]);
 	}
 
-	static load(url, callback) {
-		let xhr = Potree.XHRFactory.createXMLHttpRequest();
-		xhr.open('GET', url + '?info', true);
+	static async load(url, callback) {
+		try {
+			const response = await Potree.FetchFactory.fetchJson(url + '?info');
 
-		xhr.onreadystatechange = function () {
-			try {
-				if (xhr.readyState === 4 && xhr.status === 200) {
-					let response = JSON.parse(xhr.responseText);
-
-					let geometry = new Potree.PointCloudArena4DGeometry();
-					geometry.url = url;
-					geometry.name = response.Name;
-					geometry.provider = response.Provider;
-					geometry.numNodes = response.Nodes;
-					geometry.numPoints = response.Points;
-					geometry.version = response.Version;
-					geometry.boundingBox = new THREE.Box3(
-						new THREE.Vector3().fromArray(response.BoundingBox.slice(0, 3)),
-						new THREE.Vector3().fromArray(response.BoundingBox.slice(3, 6))
-					);
-					if (response.Spacing) {
-						geometry.spacing = response.Spacing;
-					}
-
-					let offset = geometry.boundingBox.min.clone().multiplyScalar(-1);
-
-					geometry.boundingBox.min.add(offset);
-					geometry.boundingBox.max.add(offset);
-					geometry.offset = offset;
-
-					let center = geometry.boundingBox.getCenter(new THREE.Vector3());
-					let radius = geometry.boundingBox.getSize(new THREE.Vector3()).length() / 2;
-					geometry.boundingSphere = new THREE.Sphere(center, radius);
-
-					geometry.loadHierarchy();
-
-					callback(geometry);
-				} else if (xhr.readyState === 4) {
-					callback(null);
-				}
-			} catch (e) {
-				console.error(e.message);
-				callback(null);
+			let geometry = new Potree.PointCloudArena4DGeometry();
+			geometry.url = url;
+			geometry.name = response.Name;
+			geometry.provider = response.Provider;
+			geometry.numNodes = response.Nodes;
+			geometry.numPoints = response.Points;
+			geometry.version = response.Version;
+			geometry.boundingBox = new THREE.Box3(
+				new THREE.Vector3().fromArray(response.BoundingBox.slice(0, 3)),
+				new THREE.Vector3().fromArray(response.BoundingBox.slice(3, 6))
+			);
+			if (response.Spacing) {
+				geometry.spacing = response.Spacing;
 			}
-		};
 
-		xhr.send(null);
+			let offset = geometry.boundingBox.min.clone().multiplyScalar(-1);
+
+			geometry.boundingBox.min.add(offset);
+			geometry.boundingBox.max.add(offset);
+			geometry.offset = offset;
+
+			let center = geometry.boundingBox.getCenter(new THREE.Vector3());
+			let radius = geometry.boundingBox.getSize(new THREE.Vector3()).length() / 2;
+			geometry.boundingSphere = new THREE.Sphere(center, radius);
+
+			geometry.loadHierarchy();
+
+			callback(geometry);
+		} catch (e) {
+			console.error(e.message);
+			callback(null);
+		}
 	};
 
-	loadHierarchy(){
+	async loadHierarchy(){
 		let url = this.url + '?tree';
-		let xhr = Potree.XHRFactory.createXMLHttpRequest();
-		xhr.open('GET', url, true);
-		xhr.responseType = 'arraybuffer';
 
-		xhr.onreadystatechange = () => {
-			if (!(xhr.readyState === 4 && xhr.status === 200)) {
-				return;
-			}
+		try {
+			const buffer = await Potree.FetchFactory.fetchArrayBuffer(url);
 
-			let buffer = xhr.response;
 			let numNodes = buffer.byteLength /	3;
 			let view = new DataView(buffer);
 			let stack = [];
@@ -274,11 +251,9 @@ Potree.PointCloudArena4DGeometry = class PointCloudArena4DGeometry extends Event
 
 			let levels = 0;
 
-			// TODO Debug: let start = new Date().getTime();
 			// read hierarchy
 			for (let i = 0; i < numNodes; i++) {
 				let mask = view.getUint8(i * 3 + 0, true);
-				// TODO Unused: let numPoints = view.getUint16(i * 3 + 1, true);
 
 				let hasLeft = (mask & 1) > 0;
 				let hasRight = (mask & 2) > 0;
@@ -367,20 +342,14 @@ Potree.PointCloudArena4DGeometry = class PointCloudArena4DGeometry extends Event
 					}
 				}
 			}
-			// TODO Debug:
-			// let end = new Date().getTime();
-			// let parseDuration = end - start;
-			// let msg = parseDuration;
-			// document.getElementById("lblDebug").innerHTML = msg;
 
 			this.root = root;
 			this.levels = levels;
-			// console.log(this.root);
 
 			this.dispatchEvent({type: 'hierarchy_loaded'});
-		};
-
-		xhr.send(null);
+		} catch (e) {
+			console.log('Failed to load hierarchy: ' + url + ', error: ' + e);
+		}
 	};
 
 	get spacing(){

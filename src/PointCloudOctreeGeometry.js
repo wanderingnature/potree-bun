@@ -2,7 +2,7 @@
 
 import * as THREE from "three";
 import {PointCloudTreeNode} from "./PointCloudTree.js";
-import {XHRFactory} from "./XHRFactory.js";
+import {FetchFactory} from "./FetchFactory.js";
 import {Utils} from "./utils.js";
 
 export class PointCloudOctreeGeometry{
@@ -141,11 +141,11 @@ export class PointCloudOctreeGeometryNode extends PointCloudTreeNode{
 		this.pcoGeometry.loader.load(this);
 	}
 
-	loadHierachyThenPoints(){
+	async loadHierachyThenPoints(){
 		let node = this;
 
 		// load hierarchy
-		let callback = function (node, hbuffer) {
+		let processHierarchy = function (node, hbuffer) {
 
 			let tStart = performance.now();
 
@@ -185,8 +185,6 @@ export class PointCloudOctreeGeometryNode extends PointCloudTreeNode{
 				}
 			}
 
-			// console.log(decoded);
-
 			let nodes = {};
 			nodes[node.name] = node;
 			let pco = node.pcoGeometry;
@@ -217,29 +215,16 @@ export class PointCloudOctreeGeometryNode extends PointCloudTreeNode{
 
 			node.loadPoints();
 		};
+
 		if ((node.level % node.pcoGeometry.hierarchyStepSize) === 0) {
-			// let hurl = node.pcoGeometry.octreeDir + "/../hierarchy/" + node.name + ".hrc";
 			let hurl = node.pcoGeometry.octreeDir + '/' + node.getHierarchyPath() + '/' + node.name + '.hrc';
 
-			let xhr = XHRFactory.createXMLHttpRequest();
-			xhr.open('GET', hurl, true);
-			xhr.responseType = 'arraybuffer';
-			xhr.overrideMimeType('text/plain; charset=x-user-defined');
-			xhr.onreadystatechange = () => {
-				if (xhr.readyState === 4) {
-					if (xhr.status === 200 || xhr.status === 0) {
-						let hbuffer = xhr.response;
-						callback(node, hbuffer);
-					} else {
-						console.log('Failed to load file! HTTP status: ' + xhr.status + ', file: ' + hurl);
-						Potree.numNodesLoading--;
-					}
-				}
-			};
 			try {
-				xhr.send(null);
+				const hbuffer = await FetchFactory.fetchArrayBuffer(hurl);
+				processHierarchy(node, hbuffer);
 			} catch (e) {
-				console.log('fehler beim laden der punktwolke: ' + e);
+				console.log('Failed to load file: ' + hurl + ', error: ' + e);
+				Potree.numNodesLoading--;
 			}
 		}
 	}

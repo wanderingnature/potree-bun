@@ -2,6 +2,7 @@
 import * as THREE from "three";
 import {ClipTask, ClipMethod} from "./defines.js";
 import {Box3Helper} from "./utils/Box3Helper.js";
+import {lru} from "./LRU.js";
 
 export function updatePointClouds(pointclouds, camera, renderer){
 
@@ -27,7 +28,7 @@ export function updatePointClouds(pointclouds, camera, renderer){
 		pointcloud.updateVisibleBounds();
 	}
 
-	exports.lru.freeMemory();
+	lru.freeMemory();
 
 	return result;
 };
@@ -307,7 +308,7 @@ export function updateVisibility(pointclouds, camera, renderer){
 		}
 
 		if (node.isTreeNode()) {
-			exports.lru.touch(node.geometryNode);
+			lru.touch(node.geometryNode);
 			node.sceneNode.visible = true;
 			node.sceneNode.material = pointcloud.material;
 
@@ -337,8 +338,8 @@ export function updateVisibility(pointclouds, camera, renderer){
 				node.boundingBoxNode.visible = false;
 			}
 
-			// if(node.boundingBoxNode !== undefined && exports.debug.allowedNodes !== undefined){
-			// 	if(!exports.debug.allowedNodes.includes(node.name)){
+			// if(node.boundingBoxNode !== undefined && Potree.debug.allowedNodes !== undefined){
+			// 	if(!Potree.debug.allowedNodes.includes(node.name)){
 			// 		node.boundingBoxNode.visible = false;
 			// 	}
 			// }

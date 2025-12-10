@@ -2,7 +2,7 @@
 
 import * as THREE from "three";
 import {Version} from "../Version.js";
-import {XHRFactory} from "../XHRFactory.js";
+import {FetchFactory} from "../FetchFactory.js";
 
 
 export class BinaryLoader{
@@ -18,7 +18,7 @@ export class BinaryLoader{
 		this.scale = scale;
 	}
 
-	load(node){
+	async load(node){
 		if (node.loaded) {
 			return;
 		}
@@ -29,26 +29,12 @@ export class BinaryLoader{
 			url += '.bin';
 		}
 
-		let xhr = XHRFactory.createXMLHttpRequest();
-		xhr.open('GET', url, true);
-		xhr.responseType = 'arraybuffer';
-		xhr.overrideMimeType('text/plain; charset=x-user-defined');
-		xhr.onreadystatechange = () => {
-			if (xhr.readyState === 4) {
-				if((xhr.status === 200 || xhr.status === 0) &&  xhr.response !== null){
-					let buffer = xhr.response;
-					this.parse(node, buffer);
-				} else {
-					//console.error(`Failed to load file! HTTP status: ${xhr.status}, file: ${url}`);
-					throw new Error(`Failed to load file! HTTP status: ${xhr.status}, file: ${url}`);
-				}
-			}
-		};
-		
 		try {
-			xhr.send(null);
+			const buffer = await FetchFactory.fetchArrayBuffer(url);
+			this.parse(node, buffer);
 		} catch (e) {
 			console.log('fehler beim laden der punktwolke: ' + e);
+			throw new Error(`Failed to load file! ${e.message}, file: ${url}`);
 		}
 	};
 

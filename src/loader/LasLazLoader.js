@@ -2,7 +2,7 @@
 
 import * as THREE from "three";
 import {Version} from "../Version.js";
-import {XHRFactory} from "../XHRFactory.js";
+import {FetchFactory} from "../FetchFactory.js";
 
 /**
  * laslaz code taken and adapted from plas.io js-laslaz
@@ -29,7 +29,7 @@ export class LasLazLoader {
 
 	}
 
-	load (node) {
+	async load (node) {
 		if (node.loaded) {
 			return;
 		}
@@ -40,22 +40,12 @@ export class LasLazLoader {
 			url += `.${this.extension}`;
 		}
 
-		let xhr = XHRFactory.createXMLHttpRequest();
-		xhr.open('GET', url, true);
-		xhr.responseType = 'arraybuffer';
-		xhr.overrideMimeType('text/plain; charset=x-user-defined');
-		xhr.onreadystatechange = () => {
-			if (xhr.readyState === 4) {
-				if (xhr.status === 200 || xhr.status === 0) {
-					let buffer = xhr.response;
-					this.parse(node, buffer);
-				} else {
-					console.log('Failed to load file! HTTP status: ' + xhr.status + ', file: ' + url);
-				}
-			}
-		};
-
-		xhr.send(null);
+		try {
+			const buffer = await FetchFactory.fetchArrayBuffer(url);
+			this.parse(node, buffer);
+		} catch (e) {
+			console.log('Failed to load file: ' + url + ', error: ' + e);
+		}
 	}
 
 	async parse(node, buffer){
