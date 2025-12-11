@@ -69,9 +69,57 @@ export class Viewer extends EventDispatcher{
 				$(domElement).append(potreeMap);
 			}
 
+			if ($(domElement).find('#potree_info_modal').length === 0) {
+				let potreeInfo = $(`
+					<div id="potree_info_modal" style="position: absolute; left: 50px; top: 100px; width: 500px; max-height: 70%; display: none; z-index: 10000; background: rgba(30,30,30,0.95); border-radius: 5px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+						<div id="potree_info_header" style="position: relative; width: 100%; height: 35px; background-color: rgba(0,0,0,0.5); border-top-left-radius: 5px; border-top-right-radius: 5px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; box-sizing: border-box;">
+							<span style="color: #fff; font-weight: bold;">Information</span>
+							<span id="potree_info_close" style="color: #fff; cursor: pointer; font-size: 20px; line-height: 1;">&times;</span>
+						</div>
+						<div id="potree_info_content" style="padding: 15px; color: #ddd; font-size: 14px; line-height: 1.6; overflow-y: auto; max-height: calc(70vh - 35px);">
+							<p>Loading content...</p>
+						</div>
+					</div>
+				`);
+				$(domElement).append(potreeInfo);
+			}
+
+			if ($(domElement).find('#potree_help_modal').length === 0) {
+				let potreeHelp = $(`
+					<div id="potree_help_modal" style="position: absolute; left: 50px; top: 100px; width: 500px; max-height: 70%; display: none; z-index: 10000; background: rgba(30,30,30,0.95); border-radius: 5px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+						<div id="potree_help_header" style="position: relative; width: 100%; height: 35px; background-color: rgba(0,0,0,0.5); border-top-left-radius: 5px; border-top-right-radius: 5px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; box-sizing: border-box;">
+							<span style="color: #fff; font-weight: bold;">Help</span>
+							<span id="potree_help_close" style="color: #fff; cursor: pointer; font-size: 20px; line-height: 1;">&times;</span>
+						</div>
+						<div id="potree_help_content" style="padding: 15px; color: #ddd; font-size: 14px; line-height: 1.6; overflow-y: auto; max-height: calc(70vh - 35px);">
+							<h3 style="margin-top: 0; color: #fff;">Navigation Controls</h3>
+							<ul>
+								<li><strong>Left Mouse:</strong> Rotate view</li>
+								<li><strong>Right Mouse:</strong> Pan view</li>
+								<li><strong>Scroll Wheel:</strong> Zoom in/out</li>
+								<li><strong>Middle Mouse:</strong> Pan view</li>
+							</ul>
+							<h3 style="color: #fff;">Keyboard Shortcuts</h3>
+							<ul>
+								<li><strong>+/-:</strong> Increase/decrease point size</li>
+								<li><strong>R:</strong> Reset view</li>
+							</ul>
+							<h3 style="color: #fff;">Display Options</h3>
+							<p>Use the sidebar menu (hamburger icon) to access appearance settings including point budget, point size, and color attributes.</p>
+						</div>
+					</div>
+				`);
+				$(domElement).append(potreeHelp);
+			}
+
 			if ($(domElement).find('#potree_description').length === 0) {
 				let potreeDescription = $(`<div id="potree_description" class="potree_info_text"></div>`);
 				$(domElement).append(potreeDescription);
+			}
+
+			if ($(domElement).find('#potree_view_info').length === 0) {
+				let viewInfo = $(`<div id="potree_view_info" class="potree_info_text" style="position: absolute; bottom: 10px; left: 10px; z-index: 1000; font-family: monospace; font-size: 12px; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 3px; color: #fff;"></div>`);
+				$(domElement).append(viewInfo);
 			}
 
 			if ($(domElement).find('#potree_annotations').length === 0) {
@@ -306,6 +354,7 @@ export class Viewer extends EventDispatcher{
 			this.setFreeze(false);
 			this.setControls(this.orbitControls);
 			this.setBackground('gradient');
+			this.useHQ = true;
 
 			this.scaleFactor = 1;
 
@@ -1093,6 +1142,21 @@ export class Viewer extends EventDispatcher{
 			this.setBackground(value);
 		}
 
+		if (Utils.getParameterByName('yaw')) {
+			let value = parseFloat(Utils.getParameterByName('yaw'));
+			// Convert degrees to radians
+			this.scene.view.yaw = value * (Math.PI / 180);
+			this._yawFromURL = true;
+		}
+
+		if (Utils.getParameterByName('pitch')) {
+			let value = parseFloat(Utils.getParameterByName('pitch'));
+			// Convert degrees to radians
+			this.scene.view.pitch = value * (Math.PI / 180);
+			this._pitchFromURL = true;
+		}
+
+
 		// if(Utils.getParameterByName("elevationRange")){
 		//	let value = Utils.getParameterByName("elevationRange");
 		//	value = value.replace("[", "").replace("]", "");
@@ -1178,6 +1242,24 @@ export class Viewer extends EventDispatcher{
 		}
 	};
 
+	toggleInfo () {
+		let modal = $('#potree_info_modal');
+		modal.toggle(100);
+	};
+
+	setInfoContent (html) {
+		$('#potree_info_content').html(html);
+	};
+
+	toggleHelp () {
+		let modal = $('#potree_help_modal');
+		modal.toggle(100);
+	};
+
+	setHelpContent (html) {
+		$('#potree_help_content').html(html);
+	};
+
 	onGUILoaded(callback){
 		if(this.guiLoaded){
 			callback();
@@ -1221,47 +1303,62 @@ export class Viewer extends EventDispatcher{
 			imgMapToggle.onclick = e => { this.toggleMap(); };
 			imgMapToggle.id = 'potree_map_toggle';
 
-			
+			let imgInfoToggle = document.createElement('img');
+			imgInfoToggle.src = new URL(Potree.resourcePath + '/icons/info-box.png').href;
+			imgInfoToggle.onclick = e => { this.toggleInfo(); };
+			imgInfoToggle.id = 'potree_info_toggle';
+
+			let imgHelpToggle = document.createElement('img');
+			imgHelpToggle.src = new URL(Potree.resourcePath + '/icons/help-box.png').href;
+			imgHelpToggle.onclick = e => { this.toggleHelp(); };
+			imgHelpToggle.id = 'potree_help_toggle';
 
 			let elButtons = $("#potree_quick_buttons").get(0);
 
 			elButtons.append(imgMenuToggle);
 			elButtons.append(imgMapToggle);
+			elButtons.append(imgInfoToggle);
+			elButtons.append(imgHelpToggle);
 
+			// Close buttons for modals
+			$('#potree_info_close').click(() => { this.toggleInfo(); });
+			$('#potree_help_close').click(() => { this.toggleHelp(); });
 
 			// Three.js r170+: VRButton.createButton returns DOM element directly
-			try {
-				const vrButton = VRButton.createButton(this.renderer);
+			// Only add VR button if XR is available and supported
+			if ('xr' in navigator) {
+				navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
+					if (supported) {
+						try {
+							const vrButton = VRButton.createButton(this.renderer);
+							this.renderer.xr.enabled = true;
 
-				if(vrButton == null){
-					console.log("VR not supported or active.");
-				} else {
-					this.renderer.xr.enabled = true;
+							vrButton.style.position = "";
+							vrButton.style.bottom = "";
+							vrButton.style.left = "";
+							vrButton.style.margin = "4px";
+							vrButton.style.fontSize = "100%";
+							vrButton.style.width = "2.5em";
+							vrButton.style.height = "2.5em";
+							vrButton.style.padding = "0";
+							vrButton.style.textShadow = "black 2px 2px 2px";
+							vrButton.style.display = "block";
 
-					vrButton.style.position = "";
-					vrButton.style.bottom = "";
-					vrButton.style.left = "";
-					vrButton.style.margin = "4px";
-					vrButton.style.fontSize = "100%";
-					vrButton.style.width = "2.5em";
-					vrButton.style.height = "2.5em";
-					vrButton.style.padding = "0";
-					vrButton.style.textShadow = "black 2px 2px 2px";
-					vrButton.style.display = "block";
+							elButtons.append(vrButton);
 
-					elButtons.append(vrButton);
+							// XR session events
+							this.renderer.xr.addEventListener('sessionstart', () => {
+								this.dispatchEvent({type: "vr_start"});
+							});
 
-					// XR session events
-					this.renderer.xr.addEventListener('sessionstart', () => {
-						this.dispatchEvent({type: "vr_start"});
-					});
-
-					this.renderer.xr.addEventListener('sessionend', () => {
-						this.dispatchEvent({type: "vr_end"});
-					});
-				}
-			} catch(e) {
-				console.log("VR not supported:", e.message);
+							this.renderer.xr.addEventListener('sessionend', () => {
+								this.dispatchEvent({type: "vr_end"});
+							});
+						} catch(e) {
+							console.log("VR setup error:", e.message);
+						}
+					}
+				});
 			}
 
 			this.mapView = new MapView(this);
@@ -1883,11 +1980,19 @@ export class Viewer extends EventDispatcher{
 
 		TWEEN.update(timestamp);
 
+		// Update view info display
+		{
+			const view = this.scene.view;
+			const yawDeg = (view.yaw * 180 / Math.PI).toFixed(1);
+			const pitchDeg = (view.pitch * 180 / Math.PI).toFixed(1);
+			$('#potree_view_info').html(`yaw: ${yawDeg}° pitch: ${pitchDeg}°`);
+		}
+
 		this.dispatchEvent({
 			type: 'update',
 			delta: delta,
 			timestamp: timestamp});
-			
+
 		if(config.measureTimings) {
 			performance.mark("update-end");
 			performance.measure("update", "update-start", "update-end");

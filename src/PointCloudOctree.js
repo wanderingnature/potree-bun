@@ -118,8 +118,8 @@ export class PointCloudOctree extends PointCloudTree {
 
 		{
 
-			let priorityQueue = ["rgba", "rgb", "intensity", "classification"];
-			let selected = "rgba";
+			let priorityQueue = ["classification", "rgba", "rgb", "intensity"];
+			let selected = "classification";
 
 			for(let attributeName of priorityQueue){
 				let attribute = this.pcoGeometry.pointAttributes.attributes.find(a => a.name === attributeName);
@@ -173,6 +173,7 @@ export class PointCloudOctree extends PointCloudTree {
 		// TODO read projection from file instead
 		this.projection = geometry.projection;
 		this.fallbackProjection = geometry.fallbackProjection;
+		this.sceneMetadata = geometry.sceneMetadata || null;
 
 		this.root = this.pcoGeometry.root;
 	}

@@ -35,6 +35,10 @@
 	<div class="potree_container" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; ">
 		<div id="potree_render_area" style="background-image: url('../build/potree/resources/images/background.jpg');"></div>
 		<div id="potree_sidebar_container"> </div>
+		<div id="branding" style="position: absolute; bottom: 20px; right: 20px; z-index: 1000; text-align: center;">
+			<img src="../height_legend_feet.png" alt="Height Legend" style="width: 120px; display: block; margin-bottom: 10px;">
+			<img src="../mappalachian_icon.png" alt="Mappalachian" style="width: 120px; display: block;">
+		</div>
 	</div>
 
 	<script type="module">
@@ -47,12 +51,22 @@
 		viewer.setPointBudget(2_000_000);
 		viewer.loadSettingsFromURL();
 
-		viewer.setDescription("Loading COPC format");
+		viewer.setDescription("LiDAR Scenes - Post Hurricane Helene<p>Processing by WanderingNature, LLC and Mappalachian.info");
 
 		viewer.loadGUI(() => {
 			viewer.setLanguage('en');
 			$("#menu_appearance").next().show();
 		});
+
+		// Default info content - may be supplemented by VLR metadata
+		viewer.setInfoContent(`
+			<h3 style="color: #fff;">About</h3>
+			<p>This viewer displays COPC (Cloud Optimized Point Cloud) LiDAR data.</p>
+			<p>Post-Helene LiDAR collection provided by https://www.unc.edu/posts/2025/10/02/collaboratory-maps-helene-damage-to-speed-recovery and North Carolina and North Carolina Emergency Management's Lidar Data Acquisition and Applications/</p>
+			<p>The height legend shows canopy height in feet using the Turbo color scale.</p>
+			<p>Imagery for colorization (rgba display) is provided by NC OneMap (2019). North Carolina Department of Information Technology, Government Data Analytics Center, Center for Geographic
+Information and Analysis. Available at www.nconemap.gov. NC Collaboratory collected high-resolution aerial imagery and LiDAR (light detection and ranging) data to support recovery, research, and long-term planning efforts from Hurricane Helene.</p>
+		`);
 
 		var getQueryParam = function(name) {
 			name = name.replace(/[\[\]]/g, "\\$&");
@@ -75,11 +89,35 @@
 				viewer.scene.addPointCloud(e.pointcloud);
 
 				let material = e.pointcloud.material;
-				material.size = 1;
-				material.pointSizeType = Potree.PointSizeType.ADAPTIVE;
 				if (c) material.activeAttributeName = c;
 
-				viewer.fitToScreen(0.5);
+				// Use scene metadata from VLR if available - prepend to existing info
+				const meta = e.pointcloud.sceneMetadata;
+				if (meta) {
+					console.log('Using scene metadata from VLR:', meta);
+
+					// Prepend scene-specific metadata to existing info content
+					let sceneHtml = '<h3 style="color: #fff;">Scene Information</h3>';
+					if (meta.scene_name) sceneHtml += `<p><strong>Scene:</strong> ${meta.scene_name}</p>`;
+					if (meta.description) sceneHtml += `<p>${meta.description}</p>`;
+					if (meta.source) sceneHtml += `<p><strong>Source:</strong> ${meta.source}</p>`;
+					if (meta.acquisition_date) sceneHtml += `<p><strong>Acquired:</strong> ${meta.acquisition_date}</p>`;
+					if (meta.processing_date) sceneHtml += `<p><strong>Processed:</strong> ${meta.processing_date}</p>`;
+					if (meta.location) {
+						if (meta.location.state) sceneHtml += `<p><strong>State:</strong> ${meta.location.state}</p>`;
+						if (meta.location.crs) sceneHtml += `<p><strong>CRS:</strong> ${meta.location.crs}</p>`;
+					}
+					if (meta.products_derived && meta.products_derived.length) {
+						sceneHtml += `<p><strong>Products:</strong> ${meta.products_derived.join(', ')}</p>`;
+					}
+					sceneHtml += '<hr style="border-color: #555; margin: 15px 0;">';
+
+					// Get existing content and prepend scene info
+					const existingContent = $('#potree_info_content').html();
+					viewer.setInfoContent(sceneHtml + existingContent);
+				}
+
+				viewer.fitToScreen(0.8);
 			});
         }
 	</script>

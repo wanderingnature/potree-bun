@@ -30,13 +30,13 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 			}
 		}
 
-		let pointSize = getValid(parameters.size, 1.0);
-		let minSize = getValid(parameters.minSize, 2.0);
+		let pointSize = getValid(parameters.size, 1.5);
+		let minSize = getValid(parameters.minSize, 1.5);
 		let maxSize = getValid(parameters.maxSize, 50.0);
 		let treeType = getValid(parameters.treeType, TreeType.OCTREE);
 
-		this._pointSizeType = PointSizeType.FIXED;
-		this._shape = PointShape.SQUARE;
+		this._pointSizeType = PointSizeType.ATTENUATED;
+		this._shape = PointShape.CIRCLE;
 		this._useClipBox = false;
 		this.clipBoxes = [];
 		this.clipPolygons = [];
@@ -53,7 +53,7 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 
 		this.ranges = new Map();
 
-		this._activeAttributeName = null;
+		this._activeAttributeName = "classification";
 
 		this._defaultIntensityRangeChanged = false;
 		this._defaultElevationRangeChanged = false;

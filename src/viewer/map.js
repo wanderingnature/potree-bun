@@ -695,7 +695,7 @@ export class MapView{
 			constrainResolution: false
 		});
 
-		if (pointcloud.pcoGeometry.type == 'ept'){ 
+		if (pointcloud.pcoGeometry.type == 'ept' || pointcloud.pcoGeometry.type == 'copc'){
 			return;
 		}
 
