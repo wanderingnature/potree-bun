@@ -71,7 +71,7 @@ export class Viewer extends EventDispatcher{
 
 			if ($(domElement).find('#potree_info_modal').length === 0) {
 				let potreeInfo = $(`
-					<div id="potree_info_modal" style="position: absolute; left: 50px; top: 100px; width: 500px; max-height: 70%; display: none; z-index: 10000; background: rgba(30,30,30,0.95); border-radius: 5px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+					<div id="potree_info_modal" style="position: absolute; left: 84px; top: 100px; width: 500px; max-height: 70%; display: none; z-index: 10000; background: rgba(30,30,30,0.95); border-radius: 5px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
 						<div id="potree_info_header" style="position: relative; width: 100%; height: 35px; background-color: rgba(0,0,0,0.5); border-top-left-radius: 5px; border-top-right-radius: 5px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; box-sizing: border-box;">
 							<span style="color: #fff; font-weight: bold;">Information</span>
 							<span id="potree_info_close" style="color: #fff; cursor: pointer; font-size: 20px; line-height: 1;">&times;</span>
@@ -86,7 +86,7 @@ export class Viewer extends EventDispatcher{
 
 			if ($(domElement).find('#potree_help_modal').length === 0) {
 				let potreeHelp = $(`
-					<div id="potree_help_modal" style="position: absolute; left: 50px; top: 100px; width: 500px; max-height: 70%; display: none; z-index: 10000; background: rgba(30,30,30,0.95); border-radius: 5px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+					<div id="potree_help_modal" style="position: absolute; left: 84px; top: 100px; width: 500px; max-height: 70%; display: none; z-index: 10000; background: rgba(30,30,30,0.95); border-radius: 5px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
 						<div id="potree_help_header" style="position: relative; width: 100%; height: 35px; background-color: rgba(0,0,0,0.5); border-top-left-radius: 5px; border-top-right-radius: 5px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; box-sizing: border-box;">
 							<span style="color: #fff; font-weight: bold;">Help</span>
 							<span id="potree_help_close" style="color: #fff; cursor: pointer; font-size: 20px; line-height: 1;">&times;</span>
@@ -134,37 +134,22 @@ export class Viewer extends EventDispatcher{
 					<div id="potree_quick_buttons" class="quick_buttons_container" style="">
 					</div>
 				`);
-
-				// {
-				// 	let imgMenuToggle = document.createElement('img');
-				// 	imgMenuToggle.src = new URL(Potree.resourcePath + '/icons/menu_button.svg').href;
-				// 	imgMenuToggle.onclick = this.toggleSidebar;
-				// 	// imgMenuToggle.classList.add('potree_menu_toggle');
-
-				// 	potreeMap.append(imgMenuToggle);
-				// }
-
-				// {
-				// 	let imgMenuToggle = document.createElement('img');
-				// 	imgMenuToggle.src = new URL(Potree.resourcePath + '/icons/menu_button.svg').href;
-				// 	imgMenuToggle.onclick = this.toggleSidebar;
-				// 	// imgMenuToggle.classList.add('potree_menu_toggle');
-
-				// 	potreeMap.append(imgMenuToggle);
-				// }
-
-				// {
-				// 	let imgMenuToggle = document.createElement('img');
-				// 	imgMenuToggle.src = new URL(Potree.resourcePath + '/icons/menu_button.svg').href;
-				// 	imgMenuToggle.onclick = this.toggleSidebar;
-				// 	// imgMenuToggle.classList.add('potree_menu_toggle');
-
-				// 	potreeMap.append(imgMenuToggle);
-				// }
-
-				
-
 				$(domElement).append(potreeMap);
+			}
+
+			if ($(domElement).find('#potree_preset_buttons').length === 0) {
+				let presetButtons = $(`
+					<div id="potree_preset_buttons">
+						<div class="potree_preset_header">Views</div>
+						<button class="potree_preset_btn" id="preset_classification" title="Classification View">Class</button>
+						<button class="potree_preset_btn" id="preset_photo" title="Photo/RGB View">Photo</button>
+						<button class="potree_preset_btn" id="preset_height" title="Canopy Height View">Height</button>
+						<div class="potree_preset_divider"></div>
+						<button class="potree_preset_btn" id="preset_top" title="Top View">Top</button>
+						<button class="potree_preset_btn" id="preset_reset" title="Reset to previous view">Reset</button>
+					</div>
+				`);
+				$(domElement).append(presetButtons);
 			}
 		}
 
@@ -1260,6 +1245,40 @@ export class Viewer extends EventDispatcher{
 		$('#potree_help_content').html(html);
 	};
 
+	setPresetClassification () {
+		for (let pc of this.scene.pointclouds) {
+			pc.material.activeAttributeName = 'classification';
+		}
+	};
+
+	setPresetPhoto () {
+		for (let pc of this.scene.pointclouds) {
+			pc.material.activeAttributeName = 'rgba';
+		}
+	};
+
+	setPresetHeight () {
+		for (let pc of this.scene.pointclouds) {
+			pc.material.activeAttributeName = 'intensity gradient';
+			pc.material.gradient = Potree.Gradients.TURBO;
+		}
+	};
+
+	setPresetTopView () {
+		// Save current view before switching to top
+		this._savedYaw = this.scene.view.yaw;
+		this._savedPitch = this.scene.view.pitch;
+		this.setTopView();
+	};
+
+	restorePresetView () {
+		if (this._savedYaw !== undefined && this._savedPitch !== undefined) {
+			this.scene.view.yaw = this._savedYaw;
+			this.scene.view.pitch = this._savedPitch;
+		}
+		this.fitToScreen(0.8);
+	};
+
 	onGUILoaded(callback){
 		if(this.guiLoaded){
 			callback();
@@ -1323,6 +1342,13 @@ export class Viewer extends EventDispatcher{
 			// Close buttons for modals
 			$('#potree_info_close').click(() => { this.toggleInfo(); });
 			$('#potree_help_close').click(() => { this.toggleHelp(); });
+
+			// Preset button handlers
+			$('#preset_classification').click(() => { this.setPresetClassification(); });
+			$('#preset_photo').click(() => { this.setPresetPhoto(); });
+			$('#preset_height').click(() => { this.setPresetHeight(); });
+			$('#preset_top').click(() => { this.setPresetTopView(); });
+			$('#preset_reset').click(() => { this.restorePresetView(); });
 
 			// Three.js r170+: VRButton.createButton returns DOM element directly
 			// Only add VR button if XR is available and supported

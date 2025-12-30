@@ -517,6 +517,7 @@ export class PropertiesPanel{
 					blockIntensity.css('display', 'block');
 				} else if (selectedValue === 'intensity gradient') {
 					blockIntensity.css('display', 'block');
+					blockExtra.css('display', 'block');
 				} else if (selectedValue === "indices" ){
 					blockIndex.css('display', 'block');
 				} else if (selectedValue === "matcap" ){

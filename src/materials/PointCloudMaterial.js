@@ -41,7 +41,7 @@ export class PointCloudMaterial extends THREE.RawShaderMaterial {
 		this.clipBoxes = [];
 		this.clipPolygons = [];
 		this._weighted = false;
-		this._gradient = Gradients.SPECTRAL;
+		this._gradient = Gradients.TURBO;
 		this.gradientTexture = PointCloudMaterial.generateGradientTexture(this._gradient);
 		this._matcap = "matcap.jpg";
 		this.matcapTexture = Potree.PointCloudMaterial.generateMatcapTexture(this._matcap);

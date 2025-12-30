@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<title>Potree Viewer</title>
+
+	<link rel="stylesheet" type="text/css" href="build/potree/potree.css">
+	<link rel="stylesheet" type="text/css" href="libs/jquery-ui/jquery-ui.min.css">
+	<link rel="stylesheet" type="text/css" href="libs/openlayers3/ol.css">
+	<link rel="stylesheet" type="text/css" href="libs/spectrum/spectrum.css">
+	<link rel="stylesheet" type="text/css" href="libs/jstree/themes/mixed/style.css">
+</head>
+
+<body>
+	<script src="libs/jquery/jquery-3.1.1.min.js"></script>
+	<script src="libs/spectrum/spectrum.js"></script>
+	<script src="libs/jquery-ui/jquery-ui.min.js"></script>
+	<script src="libs/other/BinaryHeap.js"></script>
+	<script src="libs/tween/tween.min.js"></script>
+	<script src="libs/d3/d3.js"></script>
+	<script src="libs/proj4/proj4.js"></script>
+	<script src="libs/openlayers3/ol.js"></script>
+	<script src="libs/i18next/i18next.js"></script>
+	<script src="libs/jstree/jstree.js"></script>
+	<script src="libs/copc/index.js"></script>
+	<script src="build/potree/potree.js"></script>
+	<script src="libs/plasio/js/laslaz.js"></script>
+
+	<!-- INCLUDE ADDITIONAL DEPENDENCIES HERE -->
+	<!-- INCLUDE SETTINGS HERE -->
+
+	<div class="potree_container" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; ">
+		<div id="potree_render_area" style="background-color: #000;"></div>
+		<div id="potree_sidebar_container"> </div>
+		<div id="branding" style="position: absolute; bottom: 20px; right: 20px; z-index: 1000; text-align: center;">
+			<img src="height_legend_feet.png" alt="Height Legend" style="width: 120px; display: block; margin-bottom: 10px;">
+			<img src="mappalachian.png" alt="Mappalachian" style="width: 120px; display: block;">
+		</div>
+	</div>
+
+	<script type="module">
+
+	import * as THREE from "./libs/three.js/build/three.module.js";
+		window.viewer = new Potree.Viewer(document.getElementById("potree_render_area"));
+
+		viewer.setEDLEnabled(true);
+		viewer.setFOV(60);
+		viewer.setPointBudget(10_000_000);
+		viewer.loadSettingsFromURL();
+
+		viewer.setDescription("LiDAR Scenes - Post Hurricane Helene<p>Processing by WanderingNature, LLC and Mappalachian.info");
+
+		viewer.loadGUI(() => {
+			viewer.setLanguage('en');
+			$("#menu_appearance").next().show();
+		});
+
+		// Default info content - may be supplemented by VLR metadata
+		viewer.setInfoContent(`
+			<h3 style="color: #fff;">About</h3>
+			<p>This viewer displays COPC (Cloud Optimized Point Cloud) LiDAR data.</p>
+			<p>Post-Helene LiDAR collection provided by https://www.unc.edu/posts/2025/10/02/collaboratory-maps-helene-damage-to-speed-recovery and North Carolina and North Carolina Emergency Management's Lidar Data Acquisition and Applications/</p>
+			<p>The height legend shows canopy height in feet using the Turbo color scale.</p>
+			<p>Imagery for colorization (rgba display) is provided by NC OneMap (2019). North Carolina Department of Information Technology, Government Data Analytics Center, Center for Geographic
+Information and Analysis. Available at www.nconemap.gov. NC Collaboratory collected high-resolution aerial imagery and LiDAR (light detection and ranging) data to support recovery, research, and long-term planning efforts from Hurricane Helene.</p>
+		`);
+
+		var getQueryParam = function(name) {
+			name = name.replace(/[\[\]]/g, "\\$&");
+			var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+				results = regex.exec(window.location.href);
+			if (!results || !results[2]) return null;
+			return decodeURIComponent(results[2].replace(/\+/g, " "));
+		}
+
+        var r = getQueryParam('r');
+        if (r) {
+			let name = r;
+			let path;
+            var http = 'http';
+            if (r.substr(0, http.length) == http) path = name;
+            else path = "pointclouds/" + name + ".copc.laz";
+
+			var c = getQueryParam('c');
+			Potree.loadPointCloud(path, name, function(e){
+				viewer.scene.addPointCloud(e.pointcloud);
+
+				let material = e.pointcloud.material;
+				material.intensityRange = [6000, 46000];
+				if (c) material.activeAttributeName = c;
+
+				// Use scene metadata from VLR if available - prepend to existing info
+				const meta = e.pointcloud.sceneMetadata;
+				if (meta) {
+					console.log('Using scene metadata from VLR:', meta);
+
+					// Prepend scene-specific metadata to existing info content
+					let sceneHtml = '<h3 style="color: #fff;">Scene Information</h3>';
+					if (meta.scene_name) sceneHtml += `<p><strong>Scene:</strong> ${meta.scene_name}</p>`;
+					if (meta.description) sceneHtml += `<p>${meta.description}</p>`;
+					if (meta.source) sceneHtml += `<p><strong>Source:</strong> ${meta.source}</p>`;
+					if (meta.acquisition_date) sceneHtml += `<p><strong>Acquired:</strong> ${meta.acquisition_date}</p>`;
+					if (meta.processing_date) sceneHtml += `<p><strong>Processed:</strong> ${meta.processing_date}</p>`;
+					if (meta.location) {
+						if (meta.location.state) sceneHtml += `<p><strong>State:</strong> ${meta.location.state}</p>`;
+						if (meta.location.crs) sceneHtml += `<p><strong>CRS:</strong> ${meta.location.crs}</p>`;
+					}
+					if (meta.products_derived && meta.products_derived.length) {
+						sceneHtml += `<p><strong>Products:</strong> ${meta.products_derived.join(', ')}</p>`;
+					}
+					sceneHtml += '<hr style="border-color: #555; margin: 15px 0;">';
+
+					// Get existing content and prepend scene info
+					const existingContent = $('#potree_info_content').html();
+					viewer.setInfoContent(sceneHtml + existingContent);
+				}
+
+				viewer.fitToScreen(0.8);
+			});
+        }
+	</script>
+  </body>
+</html>
+

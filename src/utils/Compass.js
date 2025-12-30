@@ -8,7 +8,7 @@ export class Compass{
 	constructor(viewer){
 		this.viewer = viewer;
 
-		this.visible = false;
+		this.visible = true;
 		this.dom = this.createElement();
 
 		viewer.addEventListener("update", () => {

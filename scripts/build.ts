@@ -205,16 +205,21 @@ async function buildMainBundle(): Promise<void> {
 	const outputPath = join(BUILD_DIR, "potree", "potree.js");
 	let content = await readFile(outputPath, "utf-8");
 
-	// Bun's IIFE creates an exports_Potree object with all exports
-	// We need to modify it to assign this to window.Potree
-	// The structure is: (() => { ... exports_Potree ... })();
-
-	// Replace the final })(); with code that exposes exports_Potree as window.Potree
-	// The pattern is: })(jQuery);\n})();\n\n//# debugId=...\n
-	content = content.replace(
-		/(\}\)\(\);)(\s*)(\/\/# debugId=.*)?\s*$/,
-		`window.Potree = exports_Potree;\n$1$2$3\n`
-	);
+	// Bun's IIFE creates an exports object with all exports via cE() function
+	// In dev mode it's named exports_Potree, in prod mode it gets minified (e.g., oU)
+	// We need to find the actual variable name and expose it as window.Potree
+	// Pattern: var XYZ={};cE(XYZ,{workerPool:...
+	const exportsMatch = content.match(/var\s+(\w+)\s*=\s*\{\s*\}\s*;\s*\w+\s*\(\s*\1\s*,\s*\{\s*workerPool:/);
+	if (exportsMatch) {
+		const exportsVarName = exportsMatch[1];
+		// Replace the final })(); with code that exposes the exports as window.Potree
+		content = content.replace(
+			/(\}\)\(\);)(\s*)(\/\/# debugId=.*)?\s*$/,
+			`window.Potree = ${exportsVarName};\n$1$2$3\n`
+		);
+	} else {
+		console.warn("Warning: Could not find exports variable in bundle, window.Potree may not be defined");
+	}
 
 	await writeFile(outputPath, content, "utf-8");
 

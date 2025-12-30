@@ -78,9 +78,9 @@ async function rebuild(): Promise<void> {
  * Resolve file path and check if it exists
  */
 function resolveFilePath(pathname: string): string | null {
-  // Handle root path - serve viewer.html
+  // Handle root path - serve index.html
   if (pathname === "/") {
-    pathname = "/examples/viewer.html";
+    pathname = "/index.html";
   }
 
   // Remove leading slash and resolve to absolute path
